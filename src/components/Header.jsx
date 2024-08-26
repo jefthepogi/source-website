@@ -6,7 +6,7 @@ function Header() {
     <div
       className="relative w-full"
       style={{
-        height: '300px', // Adjust this to the actual height of your image or a suitable value
+        height: '400px', // Adjust this to the actual height of your image or a suitable value
       }}
     >
       <div

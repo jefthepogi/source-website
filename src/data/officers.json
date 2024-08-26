@@ -3,6 +3,11 @@
       "category": "Core Officers",
       "officers": [
         {
+          "name": "Ms. Forcia Mae Batoctoy",
+          "position": "Youth Moderator",
+          "image": "ms-forcia.png"
+        },
+        {
           "name": "Josephen M. Magsalay",
           "position": "President",
           "image": "josephen.png"
@@ -53,6 +58,11 @@
       "category": "Year Representatives",
       "officers": [
         {
+          "name": "Empty",
+          "position": "1st Year Representative",
+          "image": "kent.png"
+        },
+        {
           "name": "Lorenxon Nic C. Batoctoy",
           "position": "2nd Year Representative",
           "image": "lorenxon.png"
@@ -76,6 +86,11 @@
           "name": "Jeo Mayku C. Tecson",
           "position": "President - Undersecretary",
           "image": "jeo.png"
+        },
+        {
+          "name": "Empty",
+          "position": "Vice President - Undersecretary",
+          "image": "kent.png"
         },
         {
           "name": "Neil Kevin S. La Viña",

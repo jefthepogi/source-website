@@ -1,55 +1,35 @@
-import React from 'react';
+import React, { useState } from 'react';
 import StudentCouncil from '../assets/officer_header-bg.jpg';
 import Discord from '../assets/discord.png';
-import Minecraft from '../assets/minecraft.png'
-
-
-const facebookPosts = [
-    {
-      url: "https://www.facebook.com/plugins/post.php?href=https%3A%2F%2Fwww.facebook.com%2FLSUSOURCE%2Fposts%2Fpfbid029YF8C7EGAQNCzu2haUTCWt1T1dsKLjsggwpqPsN4ywEZmnjqrDX1Neayj1oZwQgnl",
-      title: "Facebook Post 1"
-    },
-    {
-      url: "https://www.facebook.com/plugins/post.php?href=https%3A%2F%2Fwww.facebook.com%2FLSUSOURCE%2Fposts%2Fpfbid0u6bv5eQsa3VvXncmeXmZDnHCpr8fXMDB4FQBWazLsdrW9do5AnPrMRWJ7jMBijHHl",
-      title: "Facebook Post 2"
-    },
-    {
-      url: "https://www.facebook.com/plugins/post.php?href=https%3A%2F%2Fwww.facebook.com%2FLSUSOURCE%2Fposts%2Fpfbid02uDNaLzJjhRrf7gbYh8QQnUR2tUTG6bPJxrvRgsNDkG6YMTDgWUmoqQ7b5pED2hmpl",
-      title: "Facebook Post 3"
-    }
-  ];
+import Minecraft from '../assets/minecraft.png';
+import NewsCarousel from './NewsCarousel';
+import InitiativesSection from './InitiativesSection';
 
 function Body() {
+  const [isMinecraftModalOpen, setMinecraftModalOpen] = useState(false);
+
+  const openMinecraftModal = () => {
+    setMinecraftModalOpen(true);
+  };
+
+  const closeMinecraftModal = () => {
+    setMinecraftModalOpen(false);
+  };
+
   return (
-    <div className="space-y-20">
-      <section id="home" className="py-10 text-center padding">
+    <div className="">
+      <section id="home" className="py-10 text-lg text-center padding mb-8">
         <p>
-            <b>Student Organization Utilizing the Realm of Computer Eclecticism</b> is an academic-based organization in CCSEA, La Salle University - Ozamiz that focuses on the promotion of ICT in the community. We are dedicated to fostering excellence through innovative educational activities and practical ICT applications. Our mission includes enhancing creativity and productivity, promoting transparency and accountability, and identifying key areas for ICT development. By engaging students and the wider community, we aim to drive forward meaningful technological progress and collaborative learning.
+            <b>Student Organization Utilizing the Realm of Computer Eclecticism (SOURCE)</b> is a student organization dedicated to the exploration and application of cutting-edge computing technologies. We aim to foster a collaborative environment where students can enhance their skills, share knowledge, and contribute to the advancement of ICT in our school and beyond. By providing a platform for innovation and experimentation, we empower students to become leaders who can shape the future.
         </p>
       </section>
 
-      <section id="stay-updated" className="text-center">
-        <h2 className="text-4xl font-bold mb-4">Stay Updated</h2>
-        <div className="flex justify-center space-x-4">
-          {facebookPosts.map((post, index) => (
-            <div key={index} className="facebook-post w-[350px] h-[500px]">
-              <iframe
-                src={post.url}
-                width="350"
-                height="500"
-                style={{ border: 'none', overflow: 'hidden' }}
-                scrolling="no"
-                frameBorder="0"
-                allow="encrypted-media"
-                allowFullScreen="true"
-                title={post.title}
-              ></iframe>
-            </div>
-          ))}
-        </div>
+      <section id="stay-updated" className="text-center padding mb-8">
+        <h2 className="text-4xl text-[#087830] font-bold mb-8">News and Updates</h2>
+        <NewsCarousel />
       </section>
 
-      <div className="bg-[#087830] text-white py-8 padding">
+      <div className="bg-[#087830] text-white py-8 padding mb-8">
         <div className='py-8'>
             <h1 className="text-4xl font-bold">Explore</h1>
             <p className='px-1 py-4'>Learn more about SOURCE and our commitment to ICT excellence and community engagement.</p>
@@ -57,7 +37,6 @@ function Body() {
 
         <div className="container mx-auto pb-8">
           <div className="grid grid-cols-1 gap-8 mb-8">
-            {/* First Card: 1 row 1 column */}
             <Card
               title="SOURCE Student Council"
               description="Meet the dedicated officers of the SOURCE Student Council and learn about their roles."
@@ -67,10 +46,9 @@ function Body() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
-            {/* Second Row: 2 cards in 2 columns */}
             <Card
               title="Discord"
-              description="Connect with LSU CS/IT students and faculty on our Discord server for discussions, support, and networking"
+              description="Connect with LSU CS/IT students and faculty on our Discord server for discussions, support, and networking."
               image={Discord}
               href="https://discord.gg/UEBu2gtETH"
             />
@@ -78,18 +56,30 @@ function Body() {
               title="Minecraft"
               description="Take a break from academics and unleash your creativity on our Minecraft server. Join us for fun and relaxation!"
               image={Minecraft}
+              onClick={openMinecraftModal}
             />
           </div>
         </div>
       </div>
+
+      <section id="initiatives" className="padding py-8">
+        <h2 className="text-4xl text-[#087830] font-bold mb-8 text-center">Look out for our initiatives</h2>
+        <InitiativesSection />
+      </section>
+
+
+      {isMinecraftModalOpen && (
+        <MinecraftModal onClose={closeMinecraftModal} />
+      )}
     </div>
   );
 }
 
-function Card({ title, description, image, href }) {
+function Card({ title, description, image, href, onClick }) {
   return (
     <a
       href={href}
+      onClick={onClick}
       className="card bg-cover bg-center h-48 text-white shadow-xl flex items-center justify-start transform hover:-translate-y-2 transition-transform duration-300"
       style={{
         backgroundImage: `url(${image})`,
@@ -103,5 +93,31 @@ function Card({ title, description, image, href }) {
   );
 }
 
+function MinecraftModal({ onClose }) {
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-60">
+      <div className="bg-white p-8 rounded-lg max-w-md w-full">
+        <h2 className="text-2xl font-bold mb-4">Minecraft Server Info</h2>
+        <p><strong>Server IP:</strong> csit.rinexusgames.com</p>
+        <p><strong>Version Supported:</strong> 1.21+</p>
+        <div className="my-4">
+          <iframe
+            src="https://example.com/embed-status"
+            title="Minecraft Server Status"
+            width="100%"
+            height="100"
+            className="border-none"
+          ></iframe>
+        </div>
+        <button
+          onClick={onClose}
+          className="mt-4 bg-green-600 hover:bg-green-700 px-4 py-2 rounded text-white"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export default Body;

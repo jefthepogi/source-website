@@ -5,6 +5,8 @@ import Footer from './components/Footer';
 import Header from './components/Header';
 import Body from './components/Body';
 import OfficersPage from './components/OfficersPage';
+import EventsPage from './components/EventsPage';
+
 
 function App() {
   return (
@@ -14,6 +16,7 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/officers" element={<OfficersPage />} />
+          <Route path="/events" element={<EventsPage />} />
         </Routes>
         <Footer />
       </div>
