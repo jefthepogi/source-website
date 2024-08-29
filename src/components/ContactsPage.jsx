@@ -12,7 +12,7 @@ function ContactsPage () {
           </div>
           <div>
             <p className="max-w-md text-xl italic text-end">
-              A dedicated team working towards the advancement of ICT.
+              Let us know about your concerns!
             </p>
           </div>
         </div>

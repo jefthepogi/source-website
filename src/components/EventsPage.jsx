@@ -12,7 +12,7 @@ function EventsPage () {
           </div>
           <div>
             <p className="max-w-md text-xl italic text-end">
-              A dedicated team working towards the advancement of ICT.
+              Know about the different events, initiatives, projects of the SOURCE.
             </p>
           </div>
         </div>

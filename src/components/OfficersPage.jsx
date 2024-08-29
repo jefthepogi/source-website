@@ -1,6 +1,9 @@
 import React from 'react';
 import HeaderBgImage from '../assets/officer_header-bg.jpg';
 import officerData from '../data/officers.json';
+import officerStructure from '../assets/officer-structure.png'; // Adjust the path as needed
+
+
 
 // Function to dynamically import images
 const requireImage = (imageName) => {
@@ -69,6 +72,14 @@ function OfficersPage() {
         {categorizedOfficers.map((category, index) => (
           <CategorySection key={index} title={category.category} officers={category.officers} />
         ))}
+      </div>
+
+      <div className="bg-[#087830] p-10 padding">
+        <div className="text-white text-center">
+          <h1 className='text-5xl font-bold py-3'>Organizational Structure</h1>
+          <p>The SOURCE Student Council is comprised of nine (9) core committees and the representatives of each year-level.</p>
+        </div>
+        <img src={officerStructure} alt="Officer Structure" className="w-full h-auto" />
       </div>
     </>
   );
