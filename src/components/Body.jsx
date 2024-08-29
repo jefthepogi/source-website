@@ -2,8 +2,13 @@ import React, { useState } from 'react';
 import StudentCouncil from '../assets/officer_header-bg.jpg';
 import Discord from '../assets/discord.png';
 import Minecraft from '../assets/minecraft.png';
+import Events from '../assets/events.jpg';
+import Merch from '../assets/merch.png';
 import NewsCarousel from './NewsCarousel';
 import InitiativesSection from './InitiativesSection';
+import { FaUserFriends, FaCalendarAlt, FaTshirt, FaDiscord } from 'react-icons/fa';
+import { TbBrandMinecraft } from "react-icons/tb";
+
 
 function Body() {
   const [isMinecraftModalOpen, setMinecraftModalOpen] = useState(false);
@@ -36,12 +41,29 @@ function Body() {
         </div>
 
         <div className="container mx-auto pb-8">
-          <div className="grid grid-cols-1 gap-8 mb-8 max-w-full">
+          <div className="grid grid-cols-1 gap-8 mb-6">
             <Card
               title="SOURCE Student Council"
               description="Meet the dedicated officers of the SOURCE Student Council and learn about their roles."
               image={StudentCouncil}
               href="/officers"
+              icon={<FaUserFriends className="text-4xl" />}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 mb-6">
+            <Card
+              title="Events"
+              description="Know more about our different events, initiatives, projects."
+              image={Events}
+              href="/events"
+              icon={<FaCalendarAlt className="text-3xl" />}
+            />
+            <Card
+              title="Merch"
+              description="Exclusive SOURCE merch coming soon. Get ready to represent with style!"
+              image={Merch}
+              icon={<FaTshirt className="text-3xl" />}
             />
           </div>
 
@@ -51,14 +73,17 @@ function Body() {
               description="Connect with LSU CS/IT students and faculty on our Discord server for discussions, support, and networking."
               image={Discord}
               href="https://discord.gg/UEBu2gtETH"
+              icon={<FaDiscord className="text-4xl" />}
             />
             <Card
               title="Minecraft"
-              description="Take a break from academics and unleash your creativity on our Minecraft server. Join us for fun and relaxation!"
+              description="Take a break from academics and unleash your creativity on our Minecraft server."
               image={Minecraft}
               onClick={openMinecraftModal}
+              icon={<TbBrandMinecraft className="text-4xl" />}
             />
           </div>
+
         </div>
       </div>
 
@@ -67,26 +92,27 @@ function Body() {
         <InitiativesSection />
       </section>
 
-
       {isMinecraftModalOpen && (
         <MinecraftModal onClose={closeMinecraftModal} />
       )}
     </div>
   );
 }
-
-function Card({ title, description, image, href, onClick }) {
+function Card({ title, description, image, href, onClick, icon }) {
   return (
     <a
       href={href}
       onClick={onClick}
-      className="card bg-cover bg-center h-48 text-white shadow-xl flex items-center justify-start transform hover:-translate-y-2 transition-transform duration-300"
+      className="card bg-cover bg-center h-52 text-white shadow-xl flex items-center justify-start transform hover:-translate-y-2 transition-transform duration-300"
       style={{
         backgroundImage: `url(${image})`,
       }}
     >
-      <div className="card-body bg-black bg-opacity-25 p-10 text-left w-full h-full flex flex-col justify-center rounded-2xl">
-        <h2 className="card-title text-3xl font-bold">{title}</h2>
+      <div className="card-body bg-black bg-opacity-40 p-10 text-left w-full h-full flex flex-col justify-center rounded-2xl">
+        <div className="flex items-center mb-4">
+          {icon}
+          <h2 className="card-title text-3xl font-bold ml-2">{title}</h2>
+        </div>
         <p className='text-lg'>{description}</p>
       </div>
     </a>
@@ -111,4 +137,4 @@ function MinecraftModal({ onClose }) {
   );
 }
 
-export default Body;
+  export default Body;

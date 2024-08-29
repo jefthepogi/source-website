@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import Slider from 'react-slick';
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+import { FaArrowRight } from 'react-icons/fa'; // Importing arrow icon
 
 // Initiatives data
 const initiativesData = [
@@ -63,8 +64,12 @@ function InitiativesSection() {
         >
           {initiativesData.map((initiative, index) => (
             <div key={index} className="mb-8">
-              <a href={initiative.link}>
-                <h3 className="text-2xl font-semibold text-gray-700">{initiative.title}</h3>
+              <a
+                href={initiative.link}
+                className="flex items-center text-gray-700 hover:text-gray-900 transition-transform duration-300 transform hover:translate-x-2"
+              >
+                <h3 className="text-2xl font-semibold mr-2">{initiative.title}</h3>
+                <FaArrowRight className="text-gray-700" />
               </a>
               <p className="text-gray-600 mt-2 text-lg">{initiative.description}</p>
             </div>

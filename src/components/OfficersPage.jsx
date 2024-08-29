@@ -74,12 +74,12 @@ function OfficersPage() {
         ))}
       </div>
 
-      <div className="bg-[#087830] p-10 padding">
-        <div className="text-white text-center">
-          <h1 className='text-5xl font-bold py-3'>Organizational Structure</h1>
-          <p>The SOURCE Student Council is comprised of nine (9) core committees and the representatives of each year-level.</p>
+      <div className="bg-[#087830] p-4 padding">
+        <div className="max-w-3xl mx-auto text-white text-center py-6">
+          <h1 className='text-5xl font-bold mb-3'>Organizational Structure</h1>
+          <p>The SOURCE Student Council is comprised of nine (9) core committees (including their undersecretaries) and the representatives of each year-level.</p>
         </div>
-        <img src={officerStructure} alt="Officer Structure" className="w-full h-auto" />
+        <img src={officerStructure} alt="Officer Structure" className="w-full h-auto px-16 mb-6" />
       </div>
     </>
   );
