@@ -36,7 +36,7 @@ function Body() {
         </div>
 
         <div className="container mx-auto pb-8">
-          <div className="grid grid-cols-1 gap-8 mb-8">
+          <div className="grid grid-cols-1 gap-8 mb-8 max-w-full">
             <Card
               title="SOURCE Student Council"
               description="Meet the dedicated officers of the SOURCE Student Council and learn about their roles."
@@ -98,17 +98,8 @@ function MinecraftModal({ onClose }) {
     <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-60">
       <div className="bg-white p-8 rounded-lg max-w-md w-full">
         <h2 className="text-2xl font-bold mb-4">Minecraft Server Info</h2>
-        <p><strong>Server IP:</strong> csit.rinexusgames.com</p>
+        <p><strong>Server IP:</strong> mc.lsu-source.org</p>
         <p><strong>Version Supported:</strong> 1.21+</p>
-        <div className="my-4">
-          <iframe
-            src="https://example.com/embed-status"
-            title="Minecraft Server Status"
-            width="100%"
-            height="100"
-            className="border-none"
-          ></iframe>
-        </div>
         <button
           onClick={onClose}
           className="mt-4 bg-green-600 hover:bg-green-700 px-4 py-2 rounded text-white"

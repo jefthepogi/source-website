@@ -1,33 +1,45 @@
-import React from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import Slider from 'react-slick';
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
-// Sample initiatives data
+// Initiatives data
 const initiativesData = [
   {
     title: 'Computer Literacy Program',
-    description: 'Guests from Gala, Ozamiz City learned the basics of Microsoft Office during our computer literacy program.',
-    link: '#',
+    description: 'Join us in empowering the community! Last year, we introduced guests from Gala, Ozamiz City the essential Microsoft Office skills, setting them up for success in the digital age.',
+    link: 'https://www.facebook.com/share/p/YoBUcga9FjumYkHe/',
   },
   {
-    title: 'Workshops',
-    description: 'From game development to video editing, we have workshops for you!',
-    link: '#',
+    title: 'Hands-On Workshops',
+    description: 'Unlock your potential with our diverse workshops! Whether you’re into game development, website design or video editing, we have something tailored just for you.',
+    link: 'https://www.facebook.com/share/p/YHPC1TFgeVXyfNhm/',
   },
   {
-    title: 'Team Building',
-    description: 'idk',
-    link: '#',
-  },
-  {
-    title: 'Team Building',
-    description: 'idk',
-    link: '#',
+    title: 'CS/IT Team Building',
+    description: 'Each year, we bring CS and IT students together for a day of fun, teamwork, and lasting friendships through our team-building activities.',
+    link: 'https://www.facebook.com/share/p/9339s7hnTKikcNo9/',
   },
 ];
 
 function InitiativesSection() {
+  const [textHeight, setTextHeight] = useState(0);
+  const textDivRef = useRef(null);
+
+  useEffect(() => {
+    // Update the text height on mount and window resize
+    const updateHeight = () => {
+      if (textDivRef.current) {
+        setTextHeight(textDivRef.current.offsetHeight);
+      }
+    };
+
+    updateHeight();
+    window.addEventListener('resize', updateHeight);
+
+    return () => window.removeEventListener('resize', updateHeight);
+  }, []);
+
   const settings = {
     dots: true,
     infinite: true,
@@ -38,13 +50,17 @@ function InitiativesSection() {
     autoplaySpeed: 3000,
     centerMode: true,
     centerPadding: '0px',
+    adaptiveHeight: false, // Use consistent height for all images
   };
 
   return (
     <div className="bg-white py-8">
-      <div className="flex flex-col md:flex-row items-center">
+      <div className="flex flex-col md:flex-row items-stretch">
         {/* Static Text */}
-        <div className="md:w-1/2 mb-8 md:mb-0 md:pr-8 flex flex-col justify-center">
+        <div
+          ref={textDivRef}
+          className="md:w-1/2 mb-8 md:mb-0 md:pr-8 flex flex-col justify-center"
+        >
           {initiativesData.map((initiative, index) => (
             <div key={index} className="mb-8">
               <a href={initiative.link}>
@@ -56,16 +72,23 @@ function InitiativesSection() {
         </div>
 
         {/* Slider */}
-        <div className="md:w-1/2 flex justify-end">
-          <div className="relative w-full h-80 max-w-xs">
-            <Slider {...settings} className="h-full">
+        <div
+          className="md:w-1/2 flex justify-end overflow-hidden"
+          style={{ height: textHeight }}
+        >
+          <div className="relative w-full h-full flex-shrink-0">
+            <Slider {...settings} className="w-full h-full">
               {initiativesData.map((initiative, index) => (
-                <div key={index} className="relative w-full h-full">
-                  <div className="h-full w-full overflow-hidden">
+                <div key={index} className="relative w-full h-full flex items-center justify-center">
+                  <div className="w-full h-full overflow-hidden flex items-center justify-center">
                     <img
                       src={require(`../assets/initiatives-img/${index + 1}.jpg`)}
                       alt={initiative.title}
-                      className="h-full w-auto min-w-full object-cover"
+                      className="object-cover w-full"
+                      style={{
+                        height: '100%', // Ensure all images fill the container height
+                        width: 'auto', // Allow width to adjust based on height
+                      }}
                     />
                   </div>
                 </div>

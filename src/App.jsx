@@ -6,6 +6,7 @@ import Header from './components/Header';
 import Body from './components/Body';
 import OfficersPage from './components/OfficersPage';
 import EventsPage from './components/EventsPage';
+import ContactsPage from './components/ContactsPage';
 
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/officers" element={<OfficersPage />} />
           <Route path="/events" element={<EventsPage />} />
+          <Route path="/contacts" element={<ContactsPage />} />
         </Routes>
         <Footer />
       </div>

@@ -1,6 +1,6 @@
 import React from 'react';
 import LogoPlaceholder from '../assets/source-logo-minimal-white.png';
-import LSULogo from '../assets/lsu-logotype-green.png';
+import LSULogo from '../assets/LSU-STAR-LOGO-whit.png';
 
 function Navbar() {
   return (
@@ -16,15 +16,15 @@ function Navbar() {
           <li><a href="/" className="text-white font-bold">HOME</a></li>
           <li><a href="/officers" className="text-white font-bold">OFFICERS</a></li>
           <li><a href="/events" className="text-white font-bold">EVENTS</a></li>
-          <li><a href="#contact" className="text-white font-bold">CONTACT</a></li>
+          <li><a href="/contacts" className="text-white font-bold">CONTACTS</a></li>
         </ul>
       </div>
       <div className="navbar-end">
         <a
             href="https://lsu.edu.ph/"
-            className="btn btn-primary text-green-600 bg-white flex items-center hover:bg-gray-200 transition-colors"
+            className="btn btn-ghost	bg-[#087830] flex items-center item-center hover:bg-[#086329] transition-colors"
             >
-            <img src={LSULogo} alt="Icon" className="h-6" />
+            <img src={LSULogo} alt="Icon" className="h-8"/>
         </a>
       </div>
     </div>

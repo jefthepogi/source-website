@@ -44,8 +44,8 @@ function NewsCarousel() {
           <p className="mt-1 text-md text-gray-600">{newsData[currentIndex]?.date}</p>
           <div className="mt-2 flex flex-wrap justify-center space-x-2">
             {newsData[currentIndex]?.tags?.map((tag, index) => (
-              <span key={index} className="bg-[#087830] text-white text-sm rounded-full px-3 py-1">
-                #{tag}
+              <span key={index} className="bg-[#087830] text-gray-100 text-sm rounded-full px-3 py-1">
+                {tag}
               </span>
             ))}
           </div>
