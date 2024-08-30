@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import StudentCouncil from '../assets/officer_header-bg.jpg';
+import StudentCouncil from '../assets/student_council.jpg';
 import Discord from '../assets/discord.png';
 import Minecraft from '../assets/minecraft.png';
 import Events from '../assets/events.jpg';

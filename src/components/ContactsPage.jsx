@@ -1,5 +1,5 @@
 import React from 'react';
-import HeaderBgImage from '../assets/header-bg.jpg';
+import HeaderBgImage from '../assets/header-bg.png';
 
 function ContactsPage () {
   return (

@@ -1,5 +1,5 @@
 import React from 'react';
-import HeaderBgImage from '../assets/header-bg.jpg'; // Path to your header background image
+import HeaderBgImage from '../assets/header-bg.png'; // Path to your header background image
 
 function Header() {
   return (
