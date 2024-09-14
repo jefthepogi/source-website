@@ -1,5 +1,5 @@
 import React from 'react';
-import LogoPlaceholder from '../assets/source-logo-minimal-white.png';
+import SOURCELogo from '../assets/source-logo-minimal-white.png';
 import LSULogo from '../assets/LSU-STAR-LOGO-whit.png';
 
 function Navbar() {
@@ -7,7 +7,7 @@ function Navbar() {
     <div className="navbar bg-[#087830] text-white padding h-20 sticky top-0 z-20">
       <div className="navbar-start">
         <a href="/" className="flex items-center space-x-2">
-          <img src={LogoPlaceholder} alt="SOURCE Logo" className="w-12 h-12" />
+          <img src={SOURCELogo} alt="SOURCE Logo" className="w-12 h-12" />
           <span className="text-2xl font-bold">SOURCE</span>
         </a>
       </div>

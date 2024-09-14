@@ -63,6 +63,7 @@ function Body() {
               title="Merch"
               description="Exclusive SOURCE merch coming soon. Get ready to represent with style!"
               image={Merch}
+              href="/merch"
               icon={<FaTshirt className="text-3xl" />}
             />
           </div>
@@ -98,17 +99,23 @@ function Body() {
     </div>
   );
 }
+
 function Card({ title, description, image, href, onClick, icon }) {
   return (
     <a
       href={href}
       onClick={onClick}
-      className="card bg-cover bg-center h-52 text-white shadow-xl flex items-center justify-start transform hover:-translate-y-2 transition-transform duration-300"
-      style={{
-        backgroundImage: `url(${image})`,
-      }}
+      className="card relative h-52 text-white shadow-xl flex items-center justify-start transform hover:-translate-y-2 transition-transform duration-300"
     >
-      <div className="card-body bg-black bg-opacity-40 p-10 text-left w-full h-full flex flex-col justify-center rounded-2xl">
+      {/* Image for lazy loading */}
+      <img
+        src={image}
+        alt={title}
+        className="absolute inset-0 w-full h-full object-cover z-0 rounded-2xl"
+        loading="lazy"
+      />
+      {/* Overlay and card content */}
+      <div className="card-body bg-black bg-opacity-40 p-10 text-left w-full h-full flex flex-col justify-center relative z-10 rounded-2xl">
         <div className="flex items-center mb-4">
           {icon}
           <h2 className="card-title text-3xl font-bold ml-2">{title}</h2>

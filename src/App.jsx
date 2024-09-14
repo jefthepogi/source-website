@@ -7,6 +7,7 @@ import Body from './components/Body';
 import OfficersPage from './components/OfficersPage';
 import EventsPage from './components/EventsPage';
 import ContactsPage from './components/ContactsPage';
+import MerchPage from './components/MerchPage';
 
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
           <Route path="/officers" element={<OfficersPage />} />
           <Route path="/events" element={<EventsPage />} />
           <Route path="/contacts" element={<ContactsPage />} />
+          <Route path="/merch" element={<MerchPage />} />
         </Routes>
         <Footer />
       </div>
