@@ -8,7 +8,7 @@ import OfficersPage from './components/OfficersPage';
 import EventsPage from './components/EventsPage';
 import ContactsPage from './components/ContactsPage';
 import MerchPage from './components/MerchPage';
-
+import CodeSnippetsPage from './components/DebugCode';
 
 function App() {
   return (
@@ -21,6 +21,7 @@ function App() {
           <Route path="/events" element={<EventsPage />} />
           <Route path="/contacts" element={<ContactsPage />} />
           <Route path="/merch" element={<MerchPage />} />
+          <Route path="/letsdebug" element={<CodeSnippetsPage />} />
         </Routes>
         <Footer />
       </div>

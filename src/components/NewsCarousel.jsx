@@ -16,7 +16,7 @@ const GET_NEWS = gql`
             url
           }
           description {
-            text
+            markdown
           }
           tag
         }
@@ -85,7 +85,7 @@ function NewsCarousel() {
           <div className="mt-2 flex flex-wrap justify-center space-x-2">
             {renderTags([tag])}
           </div>
-          <p className="mt-4 text-justify">{description?.text || 'Description not available'}</p>
+          <p className="mt-4 text-justify">{description?.markdown || 'Description not available'}</p>
         </div>
       </div>
     </div>
