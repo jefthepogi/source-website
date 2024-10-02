@@ -88,7 +88,7 @@ int main() {
         </div>
       </div>
       <div className='padding py-8'>
-        <h1 className="text-xl my-12">Analyze and debug the provided C++ code snippets and produce the expected output. Use <a className="link link-success" href='https://www.onlinegdb.com/'>onlinegdb.com</a> to write your code. If you are done or need help, don't hesistate to ask the SOURCE officers.</h1>
+        <h1 className="text-xl my-12">Analyze and debug the provided C++ code snippets and produce the expected output. Use <a className="link link-success" href='https://www.onlinegdb.com/'>onlinegdb.com</a> to write your code. If you are done or need help, don't hesitate to ask the SOURCE officers.</h1>
         {codeSnippets.map((snippet) => (
           <div key={snippet.id} className="mb-8 bg-gray-100 p-6 rounded-lg shadow-lg">
             <div className="flex justify-between items-center mb-4">
