@@ -15,60 +15,113 @@ function CodeSnippetsPage() {
       id: 1,
       title: 'Problem #1',
       code: `#include <iostream>
+#include <string>
 using namespace std;
 
 int main() {
-    int num1, num2, sum;
+    string str = "Rohan";
+    int n = str.length();
     
-    sum = num1 + num2;
-
-    cout << "The sum is: " << sum << endl;
+    for (int i = 0; i < n / 2; i++) {
+        char temp = str[i];
+        str[i] = str[n - i]; 
+        str[n - i] = temp;
+    }
+    
+    cout << str << endl;
     return 0;
 }
 `,
-      expectedOutput: 'The sum is: 12', // Add expected output here
+      expectedOutput: ['nahoR'], // Make it an array
     },
     {
       id: 2,
       title: 'Problem #2',
       code: `#include <iostream>
+#include <string>
 using namespace std;
 
 int main() {
-    int age = 16;
-
-    if (age < 18) {
-        cout << "You are an adult." << endl;
-    } else {
-        cout << "You are a minor." << endl;
-    }
-
+    string str1 = "Hello";
+    string str2 = "Emoria";
+    string result;
+    
+    result = str1 + str2;
+    
+    cout << result << endl;
     return 0;
 }
 `,
-      expectedOutput: 'You are a minor.', // Add expected output here
+      expectedOutput: ['Hello Emoria'], // Make it an array
     },
     {
       id: 3,
       title: 'Problem #3',
       code: `#include <iostream>
+#include <string>
 using namespace std;
 
 int main() {
-    int num = -5;
-
-    if (num > 0) {
-        cout << num << " is positive." << endl;
-    } else if (num = 0) {
-        cout << num << " is zero." << endl;
-    } else {
-        cout << num << " is negative." << endl;
-    }
-
+    string str = "Rondina";
+    char firstChar = str[0];
+    
+    cout << "First character: " << firstChar << endl;
+    cout << "Last character: " << str[str.length()] << endl;
     return 0;
 }
 `,
-      expectedOutput: '-5 is negative.', // Add expected output here
+      expectedOutput: [
+        'First character: R',
+        'Last character: a',
+      ], // Make it an array
+    },
+    {
+      id: 4,
+      title: 'Problem #4',
+      code: `#include <iostream>
+#include <string>
+using namespace std;
+
+int main() {
+    string str = "justin aeron";
+    int count = 0;
+
+    for (int i = 0; i <= str.length(); i++) {
+        if (str[i] == ' ') {
+            count += 10;
+        }
+    }
+
+    cout << "Number of characters: " << count << endl;
+    return 0;
+}
+`,
+      expectedOutput: ['Number of characters: 11'], // Make it an array
+    },
+    {
+      id: 5,
+      title: 'Problem #5',
+      code: `#include <iostream>
+#include <string>
+using namespace std;
+
+int main() {
+    string str = "hello world";
+    char oldChar = 'o';
+    char newChar = 'a';
+
+    for (int i = 0; i < str.length(); i++) {
+        if (str[i] == oldChar) {
+            str[i] == newChar;
+            str[i] == ' ';
+        }
+    }
+
+    cout << "Modified string: " << str << endl;
+    return 0;
+}
+`,
+      expectedOutput: ['Number of characters: 10'], // Make it an array
     },
   ];
 
@@ -105,7 +158,11 @@ int main() {
             </pre>
             <div className="mt-4">
               <h3 className="text-xl font-semibold py-3">Expected Output:</h3>
-              <p className="bg-gray-900 text-white p-4 rounded-md overflow-auto">{snippet.expectedOutput}</p>
+              <div className="bg-gray-900 text-white p-4 rounded-md overflow-auto">
+                {snippet.expectedOutput.map((line, index) => (
+                  <p key={index}>{line}</p> // Render each line in a separate paragraph
+                ))}
+              </div>
             </div>
           </div>
         ))}
