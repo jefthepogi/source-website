@@ -121,7 +121,7 @@ int main() {
     return 0;
 }
 `,
-      expectedOutput: ['Number of characters: 10'], // Make it an array
+      expectedOutput: ['Modified string: hella warld'], // Make it an array
     },
   ];
 
