@@ -10,6 +10,29 @@ import ContactsPage from './components/ContactsPage';
 import MerchPage from './components/MerchPage';
 import CodeSnippetsPage from './components/DebugCode';
 
+function CCSEAMonthRedirect() {
+  React.useEffect(() => {
+    console.log("Redirecting to CCSEA Month form...");
+    window.location.replace('https://forms.gle/7s6bzGHpDk13cYwF9'); // Use replace() instead of href
+  }, []);
+
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <p className="text-lg">Redirecting to CCSEA Month Participant Form...</p>
+    </div>
+  );
+}
+
+
+function HomePage() {
+  return (
+    <>
+      <Header />
+      <Body />
+    </>
+  );
+}
+
 function App() {
   return (
     <Router>
@@ -22,19 +45,11 @@ function App() {
           <Route path="/contacts" element={<ContactsPage />} />
           <Route path="/merch" element={<MerchPage />} />
           <Route path="/letsdebug" element={<CodeSnippetsPage />} />
+          <Route path="/ccsea-month" element={<CCSEAMonthRedirect />} />
         </Routes>
         <Footer />
       </div>
     </Router>
-  );
-}
-
-function HomePage() {
-  return (
-    <>
-      <Header />
-      <Body />
-    </>
   );
 }
 
