@@ -13,7 +13,7 @@ import CodeSnippetsPage from './components/DebugCode';
 function CCSEAMonthRedirect() {
   React.useEffect(() => {
     console.log("Redirecting to CCSEA Month form...");
-    window.location.replace('https://forms.gle/7s6bzGHpDk13cYwF9'); // Use replace() instead of href
+    window.location.replace('https://docs.google.com/forms/d/e/1FAIpQLSeLeA-bG-kEpSoCKRDQ4dIjh7OskCkeBJ-DP4-m31ZCG1te8A/viewform?usp=preview'); // Use replace() instead of href
   }, []);
 
   return (
