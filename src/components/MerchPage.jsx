@@ -111,7 +111,7 @@ function MerchPage() {
       <div className="bg-[#087830] text-white py-12 px-8">
         <div className="flex justify-between items-center max-w-6xl mx-auto">
           <h1 className="text-6xl font-bold flex items-center gap-2">
-            <ShoppingCart /> Merch
+            Merch
           </h1>
           <p className="max-w-md text-xl italic text-end">Grab your exclusive SOURCE Merch now!</p>
         </div>
