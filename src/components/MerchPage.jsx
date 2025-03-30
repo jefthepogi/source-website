@@ -22,9 +22,9 @@ function MerchPage() {
   const [submitted, setSubmitted] = useState(false);
 
   const jerseys = [
-    { id: 1, name: 'SOURCE Green Jersey', price: 'PRICE SOON', description: 'General Merch', image: Jersey1 },
-    { id: 2, name: 'SOURCE Fire Nation Jersey', price: 'PRICE SOON', description: 'w/ Event Name', image: Jersey2 },
-    { id: 3, name: 'SOURCE Fire Nation Jersey', price: 'PRICE SOON', description: 'w/ Back Number', image: Jersey3 },
+    { id: 1, name: 'Green Jersey', price: 'PRICE SOON', description: 'Student', image: Jersey1 },
+    { id: 2, name: 'Fire Nation Jersey 1', price: 'PRICE SOON', description: 'w/ Event Name', image: Jersey2 },
+    { id: 3, name: 'Fire Nation Jersey 2', price: 'PRICE SOON', description: 'w/ Back Number', image: Jersey3 },
   ];
 
   const openModal = (jersey) => {
