@@ -56,6 +56,7 @@ function MerchPage() {
 
     if (Object.keys(newErrors).length > 0) {
       Object.values(newErrors).forEach((error) => toast.error(error, { duration: 3000 }));
+      console.log(errors);
       return false;
     }
 
