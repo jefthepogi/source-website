@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ShoppingCart, XCircle } from 'lucide-react';
+import HeaderBgImage from '../assets/merch.png';
 import Jersey1 from '../assets/merch/jersey1.png';
 import Jersey2 from '../assets/merch/jersey2.png';
 import Jersey3 from '../assets/merch/jersey3.png';
@@ -108,6 +109,7 @@ function MerchPage() {
     <>
       <Toaster />
       
+      {/* Header Section */}
       <div className="bg-[#087830] text-white py-12 px-8">
         <div className="flex justify-between items-center max-w-6xl mx-auto">
           <h1 className="text-6xl font-bold flex items-center gap-2">
@@ -117,10 +119,31 @@ function MerchPage() {
         </div>
       </div>
 
+      {/* Background Image Section */}
+      <div className="relative w-full" style={{ height: '400px' }}>
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage: `url(${HeaderBgImage})`,
+            height: '100%',
+            width: '100%',
+          }}
+        >
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundColor: '#014018',
+              opacity: 0.6,
+            }}
+          ></div>
+        </div>
+      </div>
+
+
       <div className="bg-gray-100">
         <div className="p-10 max-w-5xl mx-auto">
           <h2 className="text-4xl font-bold text-center mb-8 flex items-center justify-center gap-2">
-            SOURCE Jerseys
+            Jerseys
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {jerseys.map((jersey) => (
