@@ -11,7 +11,7 @@ import RusselImg from '../assets/officers-img/russel.png';
 import QRCodeImg from '../assets/merch/qr-code.jpg';
 import toast, { Toaster } from 'react-hot-toast';
 
-const GOOGLE_SHEET_WEBHOOK = "https://script.google.com/macros/s/AKfycbwCpul26f33l4I7ETf0KmC2ndCCMuEdVelEHopwBIq7L089UD1JfePBi-4TIvgs90GP/exec";
+const GOOGLE_SHEET_WEBHOOK = "https://script.google.com/macros/s/AKfycbwUmYr6O2duKZ4QSfGNoIIQF1IgcHNP3v2vfSR0ThqibMZ6mE_FlbtXHkjLHrV8oJQ4/exec";
 
 const jerseySpecificFields = {
     1: (handleChange) => (
@@ -41,17 +41,20 @@ const jerseySpecificFields = {
             <option value="CODM">CODM</option>
         </select>
     ),
-    3: (handleChange) => (
+3: (handleChange, formData) => (
         <>
-            <select name="sleeveless" onChange={handleChange} className="w-full p-2 border rounded mb-2">
-                <option value="no">Sleeveless? (Default: No)</option>
-                <option value="yes">Yes</option>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Sleeveless?</label>
+            <select name="sleeveless" onChange={handleChange} value={formData.sleeveless} className="w-full p-2 border rounded mb-2">
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
             </select>
+            <label className="block text-sm font-medium text-gray-700 mb-1 mt-2">Back Number</label>
             <input
                 type="text"
                 name="backNumber"
-                placeholder="Back Number"
+                placeholder="Enter Back Number" // More descriptive placeholder
                 onChange={handleChange}
+                value={formData.backNumber}
                 className="w-full p-2 border rounded mb-2"
             />
         </>
@@ -78,8 +81,9 @@ function MerchPage() {
         role: 'N/A',
         eventName: 'N/A',
         backNumber: 'N/A',
+        sleeveless: 'No',
         paymentMethod: '',
-        gcashReference: '',
+        gcashReference: 'N/A',
     });
     const [loading, setLoading] = useState(false);
     const [formStep, setFormStep] = useState(1);
@@ -106,7 +110,8 @@ function MerchPage() {
             merchType: jersey.name,
             role: 'N/A',
             eventName: 'N/A',
-            backNumber: 'N/A'
+            backNumber: 'N/A',
+            sleeveless: 'No',
         });
         setFormStep(1);
     };
@@ -125,6 +130,7 @@ function MerchPage() {
             role: 'N/A',
             eventName: 'N/A',
             backNumber: 'N/A',
+            sleeveless: 'No',
             paymentMethod: '',
             gcashReference: '',
         });
@@ -146,7 +152,7 @@ function MerchPage() {
         if (selectedJersey.id === 1 && formData.role === 'N/A') errors.push('Role is required');
         if (selectedJersey.id === 2 && formData.eventName === 'N/A') errors.push('Event name is required');
         if (selectedJersey.id === 3 && formData.backNumber === 'N/A') errors.push('Back number is required');
-        if (selectedJersey.id === 3 && formData.sleeveless === undefined) errors.push('Sleeveless option is required');
+        if (selectedJersey.id === 3 && formData.sleeveless === '') errors.push('Sleeveless option is required');
         if (formStep === 3 && formData.paymentMethod === 'GCash' && !formData.gcashReference.trim())
             errors.push('Reference number is required for GCash payments');
 
@@ -176,7 +182,7 @@ function MerchPage() {
 
     const renderJerseySpecificFields = () => {
         const SpecificFieldComponent = jerseySpecificFields[selectedJersey.id];
-        return SpecificFieldComponent ? SpecificFieldComponent(handleChange) : null;
+        return SpecificFieldComponent ? SpecificFieldComponent(handleChange, formData) : null;
     };
 
     const handlePaymentSelection = (method) => {
@@ -193,7 +199,6 @@ function MerchPage() {
                         key={option.value}
                         onClick={() => handlePaymentSelection(option.value)}
                         className="w-full bg-gray-200 p-2 rounded-md mb-2 flex items-center justify-center gap-2"
-
                     >
                         {option.icon} {option.label}
                     </button>
@@ -270,76 +275,76 @@ function MerchPage() {
     };
 
     const renderContent = () => {
-      switch (formStep) {
-          case 1:
-              return (
-                  <>
-                      <h2 className="text-2xl font-bold text-center mb-4">Pre-Order</h2>
-                      <div className="flex flex-col items-center mb-4">
-                          <img src={selectedJersey.image} alt={selectedJersey.name} className="w-24 h-24 object-cover rounded-md" />
-                          <p className="text-lg font-semibold mt-2">{selectedJersey.name}</p>
-                      </div>
-                      <h3 className="text-xl font-semibold mb-2">Personal Information</h3>
-                      {['firstName', 'middleInitial', 'lastName', 'phoneNumber', 'email'].map((name) => {
-                          let placeholder;
-                          if (name === 'firstName') {
-                              placeholder = 'First Name';
-                          } else if (name === 'middleInitial') {
-                              placeholder = 'Middle Initial';
-                          } else if (name === 'lastName') {
-                              placeholder = 'Last Name';
-                          } else if (name === 'phoneNumber') {
-                               placeholder = 'Phone Number';
-                          } else if (name === 'email') {
-                               placeholder = 'Email';
-                          }
+        switch (formStep) {
+            case 1:
+                return (
+                    <>
+                        <h2 className="text-2xl font-bold text-center mb-4">Pre-Order</h2>
+                        <div className="flex flex-col items-center mb-4">
+                            <img src={selectedJersey.image} alt={selectedJersey.name} className="w-24 h-24 object-cover rounded-md" />
+                            <p className="text-lg font-semibold mt-2">{selectedJersey.name}</p>
+                        </div>
+                        <h3 className="text-xl font-semibold mb-2">Personal Information</h3>
+                        {['firstName', 'middleInitial', 'lastName', 'phoneNumber', 'email'].map((name) => {
+                            let placeholder;
+                            if (name === 'firstName') {
+                                placeholder = 'First Name';
+                            } else if (name === 'middleInitial') {
+                                placeholder = 'Middle Initial';
+                            } else if (name === 'lastName') {
+                                placeholder = 'Last Name';
+                            } else if (name === 'phoneNumber') {
+                                placeholder = 'Phone Number';
+                            } else if (name === 'email') {
+                                placeholder = 'Email';
+                            }
 
-                          return (
-                              <input
-                                  key={name}
-                                  type="text"
-                                  name={name}
-                                  placeholder={placeholder}
-                                  onChange={handleChange}
-                                  value={formData[name]}
-                                  className="w-full p-2 border rounded mb-2"
-                              />
-                          );
-                      })}
-                      <select name="sex" onChange={handleChange} value={formData.sex} className="w-full p-2 border rounded mb-2">
-                          <option value="">Select Sex</option>
-                          <option value="Male">Male</option>
-                          <option value="Female">Female</option>
-                      </select>
-                      <h3 className="text-xl font-semibold mb-2 mt-4">Merch Information</h3>
-                      <select name="size" onChange={handleChange} value={formData.size} className="w-full p-2 border rounded mb-2">
-                          <option value="">Select Size</option>
-                          {['XS', 'S', 'M', 'L', 'XL', 'XXL'].map((size) => (
-                              <option key={size} value={size}>
-                                  {size}
-                              </option>
-                          ))}
-                      </select>
-                      {renderJerseySpecificFields()}
-                      <button
-                          onClick={() => {
-                              if (validateForm()) setFormStep(2);
-                          }}
-                          className={`bg-[#087830] text-white px-4 py-2 rounded-md w-full mt-4 ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#065d24]'}`}
-                          disabled={loading}
-                      >
-                          Next
-                      </button>
-                  </>
-              );
-          case 2:
-              return renderPaymentOptions();
-          case 3:
-              return renderPaymentDetails();
-          default:
-              return null;
-      }
-  }
+                            return (
+                                <input
+                                    key={name}
+                                    type="text"
+                                    name={name}
+                                    placeholder={placeholder}
+                                    onChange={handleChange}
+                                    value={formData[name]}
+                                    className="w-full p-2 border rounded mb-2"
+                                />
+                            );
+                        })}
+                        <select name="sex" onChange={handleChange} value={formData.sex} className="w-full p-2 border rounded mb-2">
+                            <option value="">Select Sex</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                        </select>
+                        <h3 className="text-xl font-semibold mb-2 mt-4">Merch Information</h3>
+                        <select name="size" onChange={handleChange} value={formData.size} className="w-full p-2 border rounded mb-2">
+                            <option value="">Select Size</option>
+                            {['XS', 'S', 'M', 'L', 'XL', 'XXL'].map((size) => (
+                                <option key={size} value={size}>
+                                    {size}
+                                </option>
+                            ))}
+                        </select>
+                        {renderJerseySpecificFields()}
+                        <button
+                            onClick={() => {
+                                if (validateForm()) setFormStep(2);
+                            }}
+                            className={`bg-[#087830] text-white px-4 py-2 rounded-md w-full mt-4 ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#065d24]'}`}
+                            disabled={loading}
+                        >
+                            Next
+                        </button>
+                    </>
+                );
+            case 2:
+                return renderPaymentOptions();
+            case 3:
+                return renderPaymentDetails();
+            default:
+                return null;
+        }
+    }
 
     return (
         <>
@@ -396,4 +401,3 @@ function MerchPage() {
 }
 
 export default MerchPage;
-
