@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { XCircle, ArrowLeft } from 'lucide-react';
+import { ShoppingCart, XCircle, ArrowLeft } from 'lucide-react';
 import { FaMoneyBill, FaMobileAlt } from 'react-icons/fa';
 import HeaderBgImage from '../assets/merch.png';
 import Jersey1 from '../assets/merch/jersey1.png';
@@ -378,7 +378,7 @@ function MerchPage() {
                                         onClick={() => openModal(jersey)}
                                         className="bg-[#087830] text-white px-5 py-2 mt-4 inline-flex items-center gap-2 rounded-md text-lg font-semibold hover:bg-[#065d24] transition-all"
                                     >
-                                        Pre-Order
+                                        <ShoppingCart /> Pre-Order
                                     </button>
                                 </div>
                             </div>
