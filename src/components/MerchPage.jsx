@@ -89,9 +89,9 @@ function MerchPage() {
     const [formStep, setFormStep] = useState(1);
 
     const jerseys = [
-        { id: 1, name: 'Green Jersey', price: '₱350', description: 'Student/Officer/Faculty', image: Jersey1 },
-        { id: 2, name: 'Fire Nation Event Jersey', price: '₱350', description: 'w/ Event Name', image: Jersey2 },
-        { id: 3, name: 'Fire Nation Sports Jersey', price: '₱350', description: 'w/ Back Number', image: Jersey3 },
+        { id: 1, name: 'Green Jersey', price: '₱350.00', description: 'Student/Officer/Faculty', image: Jersey1 },
+        { id: 2, name: 'Fire Nation Event Jersey', price: '₱350.00', description: 'w/ Event Name', image: Jersey2 },
+        { id: 3, name: 'Fire Nation Sports Jersey', price: '₱350.00', description: 'w/ Back Number', image: Jersey3 },
     ];
 
     const officers = [
