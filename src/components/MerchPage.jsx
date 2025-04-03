@@ -39,6 +39,7 @@ const jerseySpecificFields = {
             <option value="Mobile Legends">Mobile Legends</option>
             <option value="Valorant">Valorant</option>
             <option value="CODM">CODM</option>
+            <option value="Team Building">Team Building</option>
         </select>
     ),
 3: (handleChange, formData) => (
