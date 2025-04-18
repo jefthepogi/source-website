@@ -26,7 +26,7 @@ const jerseySpecificFields = {
         <select name="eventName" onChange={handleChange} className="w-full p-2 border rounded mb-2">
             <option value="">Select Event</option>
             <option value="Event Head">Event Head</option>
-            <option value="Hip Hop Competition">Hip Hop Competition</option>
+            <option value="Hip Hop">Hip Hop Competition</option>
             <option value="Tinig Sintunado">Tinig Sintunado</option>
             <option value="Tinig ng Agila">Tinig ng Agila</option>
             <option value="Video Parody">Video Parody</option>
