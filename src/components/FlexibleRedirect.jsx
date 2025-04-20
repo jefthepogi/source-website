@@ -1,0 +1,40 @@
+import React, { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+
+const redirectMap = {
+  '/ccsea-month': 'https://docs.google.com/forms/d/e/1FAIpQLSeLeA-bG-kEpSoCKRDQ4dIjh7OskCkeBJ-DP4-m31ZCG1te8A/viewform?usp=preview',
+  '/FunDataAn-Webinar': 'https://docs.google.com/forms/d/e/1FAIpQLSehts3J1HqsK88IvBUoa5RaE4Mc299JWuu2hd__Cvn8Jl2qeA/viewform?usp=header',
+  '/AdvIAS-Webinar' : 'https://docs.google.com/forms/d/e/1FAIpQLSeRaWTlh80wcEJ78-_vfKxS9aDmrKoUsSvjc55YLkcXE4L7XQ/viewform?usp=header', // Replace with your actual link
+  // Add more here
+};
+
+function FlexibleRedirect() {
+  const location = useLocation();
+  const path = location.pathname;
+
+  const redirectUrl = redirectMap[path];
+
+  useEffect(() => {
+    if (redirectUrl) {
+      window.location.replace(redirectUrl);
+    }
+  }, [redirectUrl]);
+
+  if (!redirectUrl) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-lg text-red-600">
+          ⚠️ No redirect found for <code>{path}</code>
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <p className="text-lg">Redirecting...</p>
+    </div>
+  );
+}
+
+export default FlexibleRedirect;

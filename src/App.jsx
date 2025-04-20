@@ -9,20 +9,7 @@ import EventsPage from './components/EventsPage';
 import ContactsPage from './components/ContactsPage';
 import MerchPage from './components/MerchPage';
 import CodeSnippetsPage from './components/DebugCode';
-
-function CCSEAMonthRedirect() {
-  React.useEffect(() => {
-    console.log("Redirecting to CCSEA Month form...");
-    window.location.replace('https://docs.google.com/forms/d/e/1FAIpQLSeLeA-bG-kEpSoCKRDQ4dIjh7OskCkeBJ-DP4-m31ZCG1te8A/viewform?usp=preview'); // Use replace() instead of href
-  }, []);
-
-  return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <p className="text-lg">Redirecting to CCSEA Month Participant Form...</p>
-    </div>
-  );
-}
-
+import FlexibleRedirect from './components/FlexibleRedirect';
 
 function HomePage() {
   return (
@@ -45,7 +32,9 @@ function App() {
           <Route path="/contacts" element={<ContactsPage />} />
           <Route path="/merch" element={<MerchPage />} />
           <Route path="/letsdebug" element={<CodeSnippetsPage />} />
-          <Route path="/ccsea-month" element={<CCSEAMonthRedirect />} />
+          
+          {/* Catch-all route for dynamic redirects */}
+          <Route path="/*" element={<FlexibleRedirect />} />
         </Routes>
         <Footer />
       </div>
