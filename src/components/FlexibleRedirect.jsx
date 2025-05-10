@@ -9,6 +9,8 @@ const redirectMap = {
   '/Cybersecurity-Evaluation': 'https://docs.google.com/forms/d/e/1FAIpQLSdaq5befV0wx5vHXHmIfC3KMptEl_0zFUMuzE-JOTqNxqgtxQ/viewform?usp=header',
   '/AdvIAS-Webinar' : 'https://docs.google.com/forms/d/e/1FAIpQLSeRaWTlh80wcEJ78-_vfKxS9aDmrKoUsSvjc55YLkcXE4L7XQ/viewform?usp=header',
   '/AdvIAS-Evaluation' : 'https://docs.google.com/forms/d/e/1FAIpQLSdE0-l_vjEFFUmu255C6XAmC0aZt5IM0Dx2EU1BoWdAWmlCfw/viewform?usp=preview',
+  '/GameDev-Workshop' : 'https://docs.google.com/forms/d/e/1FAIpQLSd-zhH3nTGzJ6k_Z3oNWni0SFUwB_JR1OLjUtYszH1r0iGeCQ/viewform?usp=header',
+  '/GameDev-Evaluation' : 'https://docs.google.com/forms/d/e/1FAIpQLSe13-vzz_pPl3BxS19uuCdxJp5V6gzstqlmxxy85IUMxAci1w/viewform?usp=header',
   // Add more here
 };
 
