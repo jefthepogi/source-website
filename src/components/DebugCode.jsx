@@ -15,113 +15,83 @@ function CodeSnippetsPage() {
       id: 1,
       title: 'Problem #1',
       code: `#include <iostream>
-#include <string>
 using namespace std;
 
 int main() {
-    string str = "Rohan";
-    int n = str.length();
-    
-    for (int i = 0; i < n / 2; i++) {
-        char temp = str[i];
-        str[i] = str[n - i]; 
-        str[n - i] = temp;
-    }
-    
-    cout << str << endl;
+    int pi = 3.14;
+    cout << "Pi is: " << pi;
     return 0;
 }
 `,
-      expectedOutput: ['nahoR'], // Make it an array
+      expectedOutput: ['Pi is: 3.14'], // Make it an array
     },
     {
       id: 2,
       title: 'Problem #2',
       code: `#include <iostream>
-#include <string>
 using namespace std;
 
 int main() {
-    string str1 = "Hello";
-    string str2 = "Emoria";
-    string result;
-    
-    result = str1 + str2;
-    
-    cout << result << endl;
+    int x = 5;
+    if (x = 10) {
+        cout << "x is 10";
+    } else {
+        cout << "x is not 10";
+    }
     return 0;
 }
 `,
-      expectedOutput: ['Hello Emoria'], // Make it an array
+      expectedOutput: ['x is not 10'], // Make it an array
     },
     {
       id: 3,
       title: 'Problem #3',
       code: `#include <iostream>
-#include <string>
 using namespace std;
 
 int main() {
-    string str = "Rondina";
-    char firstChar = str[0];
-    
-    cout << "First character: " << firstChar << endl;
-    cout << "Last character: " << str[str.length()] << endl;
+    int num = -5;
+    if (num > 0) {
+        cout << "Number is negative";
+    } else {
+        cout << "Number is positive";
+    }
     return 0;
 }
 `,
-      expectedOutput: [
-        'First character: R',
-        'Last character: a',
-      ], // Make it an array
+      expectedOutput: ['Number is negative'], // Make it an array
     },
     {
       id: 4,
       title: 'Problem #4',
       code: `#include <iostream>
-#include <string>
 using namespace std;
 
 int main() {
-    string str = "justin aeron";
-    int count = 0;
-
-    for (int i = 0; i <= str.length(); i++) {
-        if (str[i] == ' ') {
-            count += 10;
-        }
-    }
-
-    cout << "Number of characters: " << count << endl;
+    int x = 10
+    cout << "The value of x is: " << x;
     return 0;
 }
 `,
-      expectedOutput: ['Number of characters: 11'], // Make it an array
+      expectedOutput: ['The value of x is: 10'], // Make it an array
     },
     {
       id: 5,
       title: 'Problem #5',
       code: `#include <iostream>
-#include <string>
 using namespace std;
 
 int main() {
-    string str = "hello world";
-    char oldChar = 'o';
-    char newChar = 'a';
-
-    for (int i = 0; i < str.length(); i++) {
-        if (str[i] == oldChar) {
-            str[i] == newChar;
-            str[i] == ' ';
-        }
+    int number;
+    if (number % 2 == 0) {
+        cout << "Even number";
+    } else {
+        cout << "Odd number";
     }
-
-    cout << "Modified string: " << str << endl;
     return 0;
 }
 `,
-      expectedOutput: ['Modified string: hella warld'], // Make it an array
+      expectedOutput: ['Even number'], // Make it an array
     },
   ];
 
