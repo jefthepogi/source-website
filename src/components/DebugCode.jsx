@@ -101,7 +101,7 @@ int main() {
       <div className="bg-[#087830] text-white padding py-12">
         <div className="flex justify-between items-center"> 
           <div>
-            <h1 className="text-6xl font-bold">Coding Tutorial</h1>
+            <h1 className="text-6xl font-bold">Programming Bootcamp</h1>
           </div>
           <div>
             <p className="max-w-md text-xl italic text-end">
