@@ -7,6 +7,7 @@ const redirectMap = {
   '/Git-Evaluation': 'https://docs.google.com/forms/d/e/1FAIpQLSe4-DWFABHVVz_ZRWEeWYWX1HEHPiFt1KgLrWZf2X-QDS5YRA/viewform?usp=header',
   '/UIUX-Webinar': 'https://docs.google.com/forms/d/e/1FAIpQLSfP3_qOiL8P6JZwWlb9UBFzIJfeoi8F1flmZhfpxdF9K0PzGw/viewform?usp=header',
   '/UIUX-Evaluation': 'https://docs.google.com/forms/d/e/1FAIpQLSe1MUM9Z8V_zNnMt2O6J2fyn8ibSNisPM5QCIYmjyXbAQKdzQ/viewform?usp=header',
+  '/CSIT-Night-Survey' : 'https://docs.google.com/forms/d/e/1FAIpQLSezsL4IxVt-tvOqh-YPB9Zp0SW905zF-t7LhekYmkZESZwfWQ/viewform?usp=header',
   '/gamedev-files' : 'https://drive.google.com/uc?export=download&id=1qvVm9NUkD0i5bSR7Wob5wLLDqZ4DukDO',
   // Add more here
 };
