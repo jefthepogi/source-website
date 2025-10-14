@@ -18,12 +18,13 @@ function CodeSnippetsPage() {
 using namespace std;
 
 int main() {
-    int pi = 3.14;
-    cout << "Pi is: " << pi;
+    for (int i = 1; i >= 5; i++) {
+        cout << i << " ";
+    }
     return 0;
 }
 `,
-      expectedOutput: ['Pi is: 3.14'], // Make it an array
+      expectedOutput: ['1 2 3 4 5'], // Make it an array
     },
     {
       id: 2,
@@ -32,16 +33,19 @@ int main() {
 using namespace std;
 
 int main() {
-    int x = 5;
-    if (x = 10) {
-        cout << "x is 10";
-    } else {
-        cout << "x is not 10";
-    }
+    int score = 85;
+
+    if (score >= 90);
+        cout << "Grade A";
+    else if (score >= 75)
+        cout << "Grade B";
+    else
+        cout << "Grade C";
+
     return 0;
 }
 `,
-      expectedOutput: ['x is not 10'], // Make it an array
+      expectedOutput: ['Grade B'], 
     },
     {
       id: 3,
@@ -50,16 +54,22 @@ int main() {
 using namespace std;
 
 int main() {
-    int num = -5;
-    if (num > 0) {
-        cout << "Number is negative";
-    } else {
-        cout << "Number is positive";
+    int choice = 1;
+
+    switch (choice) {
+        case 1:
+            cout << "Hello";
+        case 2:
+            cout << "World";
+            break;
+        default:
+            cout << "Invalid";
     }
+
     return 0;
 }
 `,
-      expectedOutput: ['Number is negative'], // Make it an array
+      expectedOutput: ['Hello'], 
     },
     {
       id: 4,
@@ -68,12 +78,19 @@ int main() {
 using namespace std;
 
 int main() {
-    int x = 10
-    cout << "The value of x is: " << x;
+    int num1 = 8, num2 = 12;
+
+    if (num1 > num2)
+        cout << "num1 is greater";
+    else if (num1 = num2)
+        cout << "Both are equal";
+    else
+        cout << "num2 is greater";
+
     return 0;
 }
 `,
-      expectedOutput: ['The value of x is: 10'], // Make it an array
+      expectedOutput: ['num2 is greater'], 
     },
     {
       id: 5,
@@ -82,16 +99,21 @@ int main() {
 using namespace std;
 
 int main() {
-    int number;
-    if (number % 2 == 0) {
-        cout << "Even number";
-    } else {
-        cout << "Odd number";
-    }
+    int num;
+    cout << "Enter a number: ";
+    cin << num;
+
+    if (num > 0)
+        cout << "The number is positive.";
+    else if (num < 0)
+        cout << "The number is negative.";
+    else
+        cout << "The number is zero.";
+
     return 0;
 }
 `,
-      expectedOutput: ['Even number'], // Make it an array
+      expectedOutput: ['Possible outputs are (based on ur input):', 'The number is positive', 'The number is negative.', 'The number is zero.'], 
     },
   ];
 
