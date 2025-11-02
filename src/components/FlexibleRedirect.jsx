@@ -10,8 +10,8 @@ const redirectMap = {
   '/AWS-Webinar' : 'https://docs.google.com/forms/d/e/1FAIpQLSehYxXvDOPlxepwBYukl60pcqyTcx76Jg7ZVyGZYuDC4u7HgA/viewform?usp=header',
   '/AWS-Evaluation' : 'https://docs.google.com/forms/d/e/1FAIpQLSe9XiC3vx84LHB6VNz0QAvVJFdKmxPvK-A2zTsryx-CTEsllA/viewform?usp=header',
   '/MerchDesignSubmission' : 'https://docs.google.com/forms/d/e/1FAIpQLSdt2EHOksm3TR7S1vJtADrQO74e52esoI35MG0CZ7Kursa6rQ/viewform?usp=header',
-  '/C2C-Webinar' : 'https://docs.google.com/forms/d/e/1FAIpQLSeDeBqxc8mCbJKoHLLTNobQRdc6PLh0LujzWEOs6kpYTs7rFw/viewform?usp=header',
-  '/C2C-Evaluation' : 'https://docs.google.com/forms/d/e/1FAIpQLSeTL8K_7Xrh0KcmFrdgr6eJ9bgOrUx6AK5VtSDcdrUUCV-F8w/viewform?usp=header',
+  '/CTC-Webinar' : 'https://docs.google.com/forms/d/e/1FAIpQLSeDeBqxc8mCbJKoHLLTNobQRdc6PLh0LujzWEOs6kpYTs7rFw/viewform?usp=header',
+  '/CTC-Evaluation' : 'https://docs.google.com/forms/d/e/1FAIpQLSeTL8K_7Xrh0KcmFrdgr6eJ9bgOrUx6AK5VtSDcdrUUCV-F8w/viewform?usp=header',
   '/gamedev-files' : 'https://drive.google.com/uc?export=download&id=1qvVm9NUkD0i5bSR7Wob5wLLDqZ4DukDO',
   // Add more here
 };
