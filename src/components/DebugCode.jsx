@@ -18,13 +18,16 @@ function CodeSnippetsPage() {
 using namespace std;
 
 int main() {
-    for (int i = 1; i >= 5; i++) {
-        cout << i << " ";
+    int numbers[3] = {10, 20, 30};
+
+    for (int i = 0; i <= 3; i++) {
+        cout << numbers[i] << endl;
     }
+
     return 0;
 }
 `,
-      expectedOutput: ['1 2 3 4 5'], // Make it an array
+      expectedOutput: ['10', '20', '30'], // Make it an array
     },
     {
       id: 2,
@@ -33,19 +36,18 @@ int main() {
 using namespace std;
 
 int main() {
-    int score = 85;
+    int grades[5];
+    grades[0] = 90;
+    grades[1] = 85;
+    grades[2] = 88;
 
-    if (score >= 90);
-        cout << "Grade A";
-    else if (score >= 75)
-        cout << "Grade B";
-    else
-        cout << "Grade C";
+    cout << "Grade 4: " << grades[3] << endl;
+    cout << "Grade 5: " << grades[4] << endl;
 
     return 0;
 }
 `,
-      expectedOutput: ['Grade B'], 
+      expectedOutput: ['Grade 4: 96', 'Grade 5: 94'], 
     },
     {
       id: 3,
@@ -53,23 +55,21 @@ int main() {
       code: `#include <iostream>
 using namespace std;
 
+struct Student {
+    string name;
+    int age;
+};
+
 int main() {
-    int choice = 1;
+    Student s1;
+    s1.name = "Dylan";
+    s1.age = 19;
 
-    switch (choice) {
-        case 1:
-            cout << "Hello";
-        case 2:
-            cout << "World";
-            break;
-        default:
-            cout << "Invalid";
-    }
-
+    cout << s1->name << " is " << s1->age << " years old.";
     return 0;
 }
 `,
-      expectedOutput: ['Hello'], 
+      expectedOutput: ['Dylan is 19 years old.'], 
     },
     {
       id: 4,
@@ -77,20 +77,22 @@ int main() {
       code: `#include <iostream>
 using namespace std;
 
+struct Student {
+    string name;
+    int age;
+};
+
 int main() {
-    int num1 = 8, num2 = 12;
+    Student students[1];
 
-    if (num1 > num2)
-        cout << "num1 is greater";
-    else if (num1 = num2)
-        cout << "Both are equal";
-    else
-        cout << "num2 is greater";
+    students[1].name = "Anna";
+    students[2].name = "Ben";
 
+    cout << students[1].name << " and " << students[2].name;
     return 0;
 }
 `,
-      expectedOutput: ['num2 is greater'], 
+      expectedOutput: ['Anna and Ben'], 
     },
     {
       id: 5,
@@ -98,22 +100,21 @@ int main() {
       code: `#include <iostream>
 using namespace std;
 
+struct Book {
+    string title
+    string author;
+};
+
 int main() {
-    int num;
-    cout << "Enter a number: ";
-    cin << num;
+    Book b1;
+    b1.title = "1984";
+    b1.author = "George Orwell";
 
-    if (num > 0)
-        cout << "The number is positive.";
-    else if (num < 0)
-        cout << "The number is negative.";
-    else
-        cout << "The number is zero.";
-
+    cout << b1.title << " by " << b1.author;
     return 0;
 }
 `,
-      expectedOutput: ['Possible outputs are (based on ur input):', 'The number is positive', 'The number is negative.', 'The number is zero.'], 
+      expectedOutput: ['1984 by George Orwell'], 
     },
   ];
 
