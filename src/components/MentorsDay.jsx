@@ -130,7 +130,19 @@ const LasallianTree = () => {
       const lx = px + (bLen * 0.4) * Math.sin((bAngle + 10) * Math.PI / 180);
       const ly = py - (bLen * 0.4) * Math.cos((bAngle + 10) * Math.PI / 180);
       branches.push({ x1: px, y1: py, x2: lx, y2: ly, depth: 2 });
-      leaves.push({ x: lx, y: ly, angle: bAngle + 10, data: msg, size: 0.9 + Math.random() * 0.3 });
+      
+      // Seeded randoms for color persistence
+      const hueShift = (i * 137) % 40; // Variation in green hue
+      const lightShift = (i * 97) % 20; // Variation in brightness
+      
+      leaves.push({ 
+        x: lx, 
+        y: ly, 
+        angle: bAngle + 10, 
+        data: msg, 
+        size: 0.9 + Math.random() * 0.3,
+        color: `hsl(${120 + hueShift}, 70%, ${20 + lightShift}%)` 
+      });
     });
     return { branches, leaves };
   }, [messages]);
@@ -138,7 +150,6 @@ const LasallianTree = () => {
   return (
     <div className="fixed inset-0 w-full h-full bg-[#f8fdf9] flex flex-col overflow-hidden touch-none select-none">
       
-      {/* HEADER */}
       <header className="relative z-50 pt-8 text-center pointer-events-none">
         <h1 className="text-[#00703C] text-3xl md:text-5xl font-black tracking-tighter uppercase">The Gratitude Tree</h1>
         <p className="text-gray-400 font-bold tracking-[0.2em] text-[10px]">LASALLIAN MENTORS DAY 2026</p>
@@ -147,7 +158,6 @@ const LasallianTree = () => {
         </div>
       </header>
 
-      {/* ZOOM CONTROLS */}
       <aside className="interactive-ui absolute right-4 top-1/2 -translate-y-1/2 z-50 flex flex-col gap-3">
         {[ 
           { icon: ZoomIn, onClick: () => setScale(s => Math.min(s + 0.3, 3)) }, 
@@ -160,7 +170,6 @@ const LasallianTree = () => {
         ))}
       </aside>
 
-      {/* TREE CANVAS */}
       <main 
         ref={mainRef}
         className="absolute inset-0 z-10 flex items-center justify-center cursor-grab active:cursor-grabbing"
@@ -182,7 +191,6 @@ const LasallianTree = () => {
               <line key={i} x1={b.x1} y1={b.y1} x2={b.x2} y2={b.y2} stroke="#4a3428" strokeWidth={b.depth} strokeLinecap="round" />
             ))}
 
-            {/* LEAVES: Sorted to ensure the hovered tooltip is drawn last (on top) */}
             {[...treeData.leaves]
               .sort((a, b) => (a.data.id === hoveredLeaf ? 1 : b.data.id === hoveredLeaf ? -1 : 0))
               .map((leaf) => {
@@ -196,16 +204,15 @@ const LasallianTree = () => {
                     onMouseLeave={() => setHoveredLeaf(null)}
                     onTouchStart={(e) => { e.stopPropagation(); setHoveredLeaf(leaf.data.id); }}
                   >
-                    {/* Lanceolate Leaf Shape */}
                     <path
                       d={`M ${leaf.x} ${leaf.y} 
                           C ${leaf.x - 12 * leaf.size} ${leaf.y + 2 * leaf.size}, ${leaf.x - 14 * leaf.size} ${leaf.y - 18 * leaf.size}, ${leaf.x} ${leaf.y - 32 * leaf.size}
                           C ${leaf.x + 14 * leaf.size} ${leaf.y - 18 * leaf.size}, ${leaf.x + 12 * leaf.size} ${leaf.y + 2 * leaf.size}, ${leaf.x} ${leaf.y}`}
-                      fill={isHovered ? "#00a85a" : "#00703C"}
+                      fill={isHovered ? "#00E676" : leaf.color}
                       stroke={isHovered ? "#fff" : "none"}
                       strokeWidth="1"
                       transform={`rotate(${leaf.angle} ${leaf.x} ${leaf.y})`}
-                      className="transition-colors duration-200"
+                      className="transition-colors duration-300"
                     />
 
                     <AnimatePresence mode="wait">
@@ -232,7 +239,6 @@ const LasallianTree = () => {
         </motion.div>
       </main>
 
-      {/* INPUT BOX */}
       <footer className="relative z-[60] mt-auto w-full p-6 pb-10 pointer-events-none">
         <div className="max-w-lg mx-auto pointer-events-auto interactive-ui">
           <div className="flex bg-white shadow-[0_20px_50px_rgba(0,0,0,0.15)] rounded-full p-1.5 border-2 border-[#00703C]/20 overflow-hidden">
