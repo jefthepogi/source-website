@@ -10,10 +10,7 @@ const LasallianTree = () => {
   const [input, setInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hoveredLeaf, setHoveredLeaf] = useState(null);
-  
-  // Cooldown State
   const [cooldown, setCooldown] = useState(0);
-  
   const [scale, setScale] = useState(0.8);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -21,7 +18,6 @@ const LasallianTree = () => {
   const mainRef = useRef(null);
 
   useEffect(() => {
-    // Check for existing cooldown in localStorage on mount
     const lastPost = localStorage.getItem('last_post_time');
     if (lastPost) {
       const remaining = 60 - Math.floor((Date.now() - parseInt(lastPost)) / 1000);
@@ -58,7 +54,6 @@ const LasallianTree = () => {
     };
   }, []);
 
-  // Cooldown Timer Effect
   useEffect(() => {
     if (cooldown > 0) {
       const timer = setTimeout(() => setCooldown(cooldown - 1), 1000);
@@ -78,8 +73,7 @@ const LasallianTree = () => {
       const { error } = await supabase.from('gratitude_tree').insert([{ message: input.trim() }]);
       if (!error) {
         setInput('');
-        const now = Date.now();
-        localStorage.setItem('last_post_time', now.toString());
+        localStorage.setItem('last_post_time', Date.now().toString());
         setCooldown(60);
         fetchMessages();
       }
@@ -187,33 +181,53 @@ const LasallianTree = () => {
             {treeData.branches.map((b, i) => (
               <line key={i} x1={b.x1} y1={b.y1} x2={b.x2} y2={b.y2} stroke="#4a3428" strokeWidth={b.depth} strokeLinecap="round" />
             ))}
-            {treeData.leaves.map((leaf) => (
-              <g 
-                key={leaf.data.id} 
-                className="interactive-ui cursor-pointer"
-                onMouseEnter={() => setHoveredLeaf(leaf.data.id)}
-                onMouseLeave={() => setHoveredLeaf(null)}
-                onTouchStart={(e) => { e.stopPropagation(); setHoveredLeaf(leaf.data.id); }}
-              >
-                <ellipse cx={leaf.x} cy={leaf.y} rx={12 * leaf.size} ry={17 * leaf.size} fill={hoveredLeaf === leaf.data.id ? "#00a85a" : "#00703C"}
-                  transform={`rotate(${leaf.angle} ${leaf.x} ${leaf.y})`} className="transition-colors duration-200" />
+
+            {/* LEAVES: Sorted to ensure the hovered tooltip is drawn last (on top) */}
+            {[...treeData.leaves]
+              .sort((a, b) => (a.data.id === hoveredLeaf ? 1 : b.data.id === hoveredLeaf ? -1 : 0))
+              .map((leaf) => {
+                const isHovered = hoveredLeaf === leaf.data.id;
                 
-                <AnimatePresence mode="wait">
-                  {hoveredLeaf === leaf.data.id && (
-                    <foreignObject x={leaf.x - 75} y={leaf.y - 110} width="150" height="90" className="overflow-visible pointer-events-none">
-                      <motion.div 
-                        initial={{ opacity: 0, scale: 0.5, y: 20 }} 
-                        animate={{ opacity: 1, scale: 1, y: 0 }} 
-                        exit={{ opacity: 0, scale: 0.5, y: 20 }}
-                        className="bg-white p-3 rounded-xl shadow-2xl border-2 border-[#00703C] text-center"
-                      >
-                        <p className="text-[10px] font-bold text-[#1a3a2a] leading-tight italic">"{leaf.data.message}"</p>
-                      </motion.div>
-                    </foreignObject>
-                  )}
-                </AnimatePresence>
-              </g>
-            ))}
+                return (
+                  <g 
+                    key={leaf.data.id} 
+                    className="interactive-ui cursor-pointer"
+                    onMouseEnter={() => setHoveredLeaf(leaf.data.id)}
+                    onMouseLeave={() => setHoveredLeaf(null)}
+                    onTouchStart={(e) => { e.stopPropagation(); setHoveredLeaf(leaf.data.id); }}
+                  >
+                    {/* Lanceolate Leaf Shape */}
+                    <path
+                      d={`M ${leaf.x} ${leaf.y} 
+                          C ${leaf.x - 12 * leaf.size} ${leaf.y + 2 * leaf.size}, ${leaf.x - 14 * leaf.size} ${leaf.y - 18 * leaf.size}, ${leaf.x} ${leaf.y - 32 * leaf.size}
+                          C ${leaf.x + 14 * leaf.size} ${leaf.y - 18 * leaf.size}, ${leaf.x + 12 * leaf.size} ${leaf.y + 2 * leaf.size}, ${leaf.x} ${leaf.y}`}
+                      fill={isHovered ? "#00a85a" : "#00703C"}
+                      stroke={isHovered ? "#fff" : "none"}
+                      strokeWidth="1"
+                      transform={`rotate(${leaf.angle} ${leaf.x} ${leaf.y})`}
+                      className="transition-colors duration-200"
+                    />
+
+                    <AnimatePresence mode="wait">
+                      {isHovered && (
+                        <foreignObject x={leaf.x - 75} y={leaf.y - 115} width="150" height="95" className="overflow-visible pointer-events-none">
+                          <motion.div 
+                            initial={{ opacity: 0, scale: 0.5, y: 20 }} 
+                            animate={{ opacity: 1, scale: 1, y: 0 }} 
+                            exit={{ opacity: 0, scale: 0.5, y: 20 }}
+                            className="relative bg-white p-3 rounded-xl shadow-2xl border-2 border-[#00703C] text-center"
+                          >
+                            <p className="text-[10px] md:text-[11px] font-bold text-[#1a3a2a] leading-tight italic">
+                              "{leaf.data.message}"
+                            </p>
+                            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-[#00703C]" />
+                          </motion.div>
+                        </foreignObject>
+                      )}
+                    </AnimatePresence>
+                  </g>
+                );
+              })}
           </svg>
         </motion.div>
       </main>
@@ -251,7 +265,6 @@ const LasallianTree = () => {
           </p>
         </div>
       </footer>
-
     </div>
   );
 };
