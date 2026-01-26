@@ -4,11 +4,13 @@
   "private": true,
   "dependencies": {
     "@apollo/client": "^3.11.8",
+    "@supabase/supabase-js": "^2.91.1",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
     "axios": "^1.7.7",
     "daisyui": "^4.12.10",
+    "framer-motion": "^12.29.0",
     "graphql": "^16.9.0",
     "graphql-request": "^7.1.0",
     "lucide-react": "^0.485.0",
