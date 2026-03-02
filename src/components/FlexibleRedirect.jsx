@@ -16,6 +16,8 @@ const redirectMap = {
   '/TB2026-Evaluation' : 'https://docs.google.com/forms/d/e/1FAIpQLSeFEVqtzDBGoC_d84HvP9ekNIptuwK773AO-2O8gUGDx_Gtaw/viewform?usp=header',
   '/ResearchColloquium' : 'https://docs.google.com/forms/d/e/1FAIpQLSdcI84sA1k9kyN1lh64Lt50-ayMadW99eOs4DZZDQH_PqcePg/viewform?usp=header',
   '/ResearchColloquium-Evaluation' : 'https://docs.google.com/forms/d/e/1FAIpQLSefyzKsGYc1JhoQmsMPIPnukhjkksrfAwjKiyvoYwU7wYk7Ng/viewform?usp=header',
+  '/InfoSecBootcamp' : 'https://docs.google.com/forms/d/e/1FAIpQLSdaHexkhcs4jsvNTTTVvyTxhexViS_ZErDz8HPnpd2a2TUsEw/viewform?usp=header',
+  '/InfoSecBootcamp-Evaluation' : 'https://docs.google.com/forms/d/e/1FAIpQLSfHQBgm2NRy3v298Gp4ELg7fyPh-cUHnU9EDR3WuQF3BJ9eSg/viewform?usp=header',
   // Add more here
 };
 
