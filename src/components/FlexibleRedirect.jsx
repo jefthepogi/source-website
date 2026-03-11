@@ -19,6 +19,7 @@ const redirectMap = {
   '/InfoSecBootcamp' : 'https://docs.google.com/forms/d/e/1FAIpQLSdaHexkhcs4jsvNTTTVvyTxhexViS_ZErDz8HPnpd2a2TUsEw/viewform?usp=header',
   '/InfoSecBootcamp-Evaluation' : 'https://docs.google.com/forms/d/e/1FAIpQLSfHQBgm2NRy3v298Gp4ELg7fyPh-cUHnU9EDR3WuQF3BJ9eSg/viewform?usp=header',
   '/ITCert-Webinar' : 'https://docs.google.com/forms/d/e/1FAIpQLSe6dRCla68r-tJru3A_CLMHqiA5HIJ4CBk5XOmp9WiT-wGupw/viewform?usp=header',
+  '/ITCert-Evaluation' : 'https://docs.google.com/forms/d/e/1FAIpQLSczkbTE6Y1nxflSywj8REDFHY7LqmVzvu0NghrkbeVtj-c8qA/viewform?usp=header',
   // Add more here
 };
 
