@@ -3,38 +3,6 @@ import { supabase } from '../lib/supabase';
 import { Calendar, MapPin, Clock, ExternalLink } from 'lucide-react';
 import HeaderBgImage from '../assets/events.jpg';
 
-const S = `
-  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Outfit:wght@300;400;500;600&display=swap');
-  :root {
-    --bg:#0d0f0e; --bg-2:#131615; --bg-3:#191c1a; --bg-4:#1f2421;
-    --border:rgba(255,255,255,0.07); --border-md:rgba(255,255,255,0.11);
-    --accent:#22c55e; --accent-dim:#22c55e18;
-    --text:#f0f2f1; --text-2:#9aa39d; --text-3:#5a6560;
-    --font-head:'Syne',sans-serif; --font-body:'Outfit',sans-serif; --radius:14px;
-  }
-  .events-root { font-family: var(--font-body); background: var(--bg); color: var(--text); }
-  .filter-bar { background: rgba(13,15,14,0.9); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
-  .filter-pill {
-    padding: 6px 14px; border-radius: 100px; font-size: 12px; font-weight: 500; cursor: pointer;
-    border: 1px solid var(--border-md); color: var(--text-2); background: transparent;
-    font-family: var(--font-body); transition: all 0.2s;
-  }
-  .filter-pill:hover { color: var(--text); border-color: var(--accent); }
-  .filter-pill.active-green { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; }
-  .filter-pill.active-dark { background: var(--text); color: #000; border-color: var(--text); font-weight: 600; }
-  .event-card {
-    background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius);
-    overflow: hidden; display: flex; flex-direction: column;
-    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
-  }
-  .event-card:hover { transform: translateY(-4px); border-color: var(--border-md); box-shadow: 0 16px 48px rgba(0,0,0,0.5); }
-  .event-card .card-img { transition: transform 0.6s ease; }
-  .event-card:hover .card-img { transform: scale(1.05); }
-  .fade-in { animation: fadeUp 0.4s ease both; }
-  @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-  @keyframes spin { to { transform: rotate(360deg); } }
-`;
-
 const STATUS = {
   upcoming: { label: 'Upcoming', dot: '#60a5fa', bg: 'rgba(96,165,250,0.12)', text: '#93c5fd' },
   ongoing:  { label: 'Ongoing',  dot: '#22c55e', bg: 'rgba(34,197,94,0.12)',  text: '#86efac' },
@@ -67,11 +35,10 @@ export default function EventsPage() {
 
   return (
     <>
-      <style>{S}</style>
       <div className="events-root">
 
         {/* Hero */}
-        <div style={{ position: 'relative', height: '420px', overflow: 'hidden', background: '#0a0c0b' }}>
+        <div style={{ position: 'relative', height: 'clamp(300px,50vw,420px)', overflow: 'hidden', background: '#0a0c0b' }}>
           <img src={HeaderBgImage} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(160deg, rgba(8,12,10,0.93) 0%, rgba(8,12,10,0.72) 55%, rgba(8,12,10,0.4) 100%)' }} />
           <div style={{ position: 'absolute', inset: 0, backgroundImage: 'radial-gradient(rgba(34,197,94,0.1) 1px, transparent 1px)', backgroundSize: '32px 32px', opacity: 0.45 }} />
@@ -85,7 +52,7 @@ export default function EventsPage() {
             <p style={{ color: 'rgba(240,242,241,0.45)', fontWeight: 300, maxWidth: '380px', marginBottom: 28 }}>Workshops, webinars, competitions, and more.</p>
 
             {/* Stats */}
-            <div style={{ display: 'flex', gap: 32 }}>
+            <div className="hero-stats" style={{ display: 'flex', gap: 32 }}>
               {[{ l: 'Upcoming', v: upcoming, c: '#93c5fd' }, { l: 'Ongoing', v: ongoing, c: '#86efac' }, { l: 'Total', v: events.length, c: '#f0f2f1' }].map(({ l, v, c }) => (
                 <div key={l}>
                   <p style={{ fontFamily: "'Syne',sans-serif", fontWeight: 700, fontSize: '2rem', color: c, lineHeight: 1 }}>{v}</p>
@@ -98,7 +65,7 @@ export default function EventsPage() {
         </div>
 
         {/* Filter bar */}
-        <div className="filter-bar" style={{ position: 'sticky', top: '58px', zIndex: 20 }}>
+        <div className="filter-bar" style={{ position: 'sticky', top: '60px', zIndex: 20 }}>
           <div style={{ padding: '12px 11vw', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
             {['all', 'upcoming', 'ongoing', 'past'].map((s) => (
               <button key={s} onClick={() => setActiveStatus(s)}
@@ -130,7 +97,7 @@ export default function EventsPage() {
               <p style={{ color: '#5a6560', fontSize: 14 }}>No events found for this filter.</p>
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 20 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%,300px), 1fr))', gap: 20 }}>
               {filtered.map((ev, i) => <EventCard key={ev.id} event={ev} delay={i * 35} />)}
             </div>
           )}

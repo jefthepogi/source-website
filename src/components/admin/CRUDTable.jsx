@@ -1,143 +1,158 @@
-import React, { useState } from 'react';
-import { Pencil, Trash2, Plus, X, Check, AlertTriangle } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { Pencil, Trash2, Plus, X, Check, AlertTriangle, Upload, Link, Image } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
+import '../../admin.css';
 
-// ── Generic field renderer ─────────────────────────────────────────────────
-export function FieldInput({ field, value, onChange }) {
-  const base =
-    'w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#087830] focus:ring-2 focus:ring-[#087830]/10 transition';
+// DS is kept as a no-op export so existing imports don't break
+export const DS = '';
 
-  if (field.type === 'textarea') {
-    return (
-      <textarea
-        value={value ?? ''}
-        onChange={(e) => onChange(field.name, e.target.value)}
-        rows={3}
-        placeholder={field.placeholder || ''}
-        className={`${base} resize-none`}
-      />
-    );
-  }
+// ── Image Upload Field ────────────────────────────────────────────────────────
+export function ImageUploadField({ value, onChange, bucket = 'images', folder = '' }) {
+  const [mode,      setMode]      = useState('upload');
+  const [uploading, setUploading] = useState(false);
+  const [dragOver,  setDragOver]  = useState(false);
+  const [preview,   setPreview]   = useState(value || '');
+  const inputRef = useRef();
 
-  if (field.type === 'select') {
-    return (
-      <select
-        value={value ?? ''}
-        onChange={(e) => onChange(field.name, e.target.value)}
-        className={base}
-      >
-        <option value="">— Select —</option>
-        {field.options.map((o) => (
-          <option key={o} value={o}>{o}</option>
-        ))}
-      </select>
-    );
-  }
+  const uploadFile = async (file) => {
+    if (!file || !file.type.startsWith('image/')) return;
+    setUploading(true);
+    try {
+      const ext  = file.name.split('.').pop();
+      const path = `${folder ? folder + '/' : ''}${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error } = await supabase.storage.from(bucket).upload(path, file, { upsert: true });
+      if (error) throw error;
+      const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(path);
+      setPreview(publicUrl);
+      onChange('image_url', publicUrl);
+    } catch (err) {
+      alert('Upload failed: ' + err.message);
+    } finally {
+      setUploading(false);
+    }
+  };
 
-  if (field.type === 'boolean') {
-    return (
-      <button
-        type="button"
-        onClick={() => onChange(field.name, !value)}
-        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-          value ? 'bg-[#087830]' : 'bg-gray-200'
-        }`}
-      >
-        <span
-          className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-            value ? 'translate-x-6' : 'translate-x-1'
-          }`}
-        />
-      </button>
-    );
-  }
-
-  if (field.type === 'number') {
-    return (
-      <input
-        type="number"
-        value={value ?? ''}
-        onChange={(e) => onChange(field.name, e.target.value)}
-        placeholder={field.placeholder || ''}
-        className={base}
-      />
-    );
-  }
-
-  if (field.type === 'date') {
-    return (
-      <input
-        type="date"
-        value={value ?? ''}
-        onChange={(e) => onChange(field.name, e.target.value)}
-        className={base}
-      />
-    );
-  }
+  const handleDrop = (e) => {
+    e.preventDefault(); setDragOver(false);
+    const file = e.dataTransfer.files[0];
+    if (file) uploadFile(file);
+  };
 
   return (
-    <input
-      type={field.type || 'text'}
-      value={value ?? ''}
-      onChange={(e) => onChange(field.name, e.target.value)}
-      placeholder={field.placeholder || ''}
-      className={base}
-    />
+    <div>
+      {/* Mode toggle */}
+      <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+        {[{ id: 'upload', icon: <Upload size={12} />, label: 'Upload' }, { id: 'url', icon: <Link size={12} />, label: 'Paste URL' }].map(({ id, icon, label }) => (
+          <button key={id} type="button" onClick={() => setMode(id)}
+            className={`adm-pill ${mode === id ? 'active' : ''}`}
+            style={{ fontSize: 12 }}>
+            {icon} {label}
+          </button>
+        ))}
+      </div>
+
+      {mode === 'upload' ? (
+        <>
+          <div
+            className={`adm-upload-zone ${dragOver ? 'drag-over' : ''}`}
+            onClick={() => !uploading && inputRef.current?.click()}
+            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={handleDrop}
+          >
+            {uploading ? (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                <div className="spin-anim" style={{ width: 22, height: 22, border: '2px solid var(--accent)', borderTopColor: 'transparent', borderRadius: '50%' }} />
+                <span style={{ fontSize: 12, color: 'var(--text-2)' }}>Uploading…</span>
+              </div>
+            ) : preview ? (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                <img src={preview} alt="preview" style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 8, border: '1px solid var(--border-md)' }} />
+                <span style={{ fontSize: 12, color: 'var(--accent)', fontWeight: 500 }}>✓ Uploaded — click to replace</span>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+                <Image size={28} style={{ color: 'var(--text-3)' }} />
+                <span style={{ fontSize: 13, color: 'var(--text-2)', fontWeight: 500 }}>Click or drag & drop to upload</span>
+                <span style={{ fontSize: 11, color: 'var(--text-3)' }}>JPG, PNG, WEBP — stored in Supabase</span>
+              </div>
+            )}
+          </div>
+          <input ref={inputRef} type="file" accept="image/*" style={{ display: 'none' }}
+            onChange={(e) => e.target.files[0] && uploadFile(e.target.files[0])} />
+        </>
+      ) : (
+        <input className="adm-input" type="text" placeholder="https://..."
+          value={value || ''}
+          onChange={(e) => { setPreview(e.target.value); onChange('image_url', e.target.value); }} />
+      )}
+    </div>
   );
 }
 
-// ── Modal ──────────────────────────────────────────────────────────────────
-export function Modal({ title, fields, data, onSave, onClose, saving }) {
-  const [form, setForm] = useState({ ...data });
+// ── Generic field renderer ────────────────────────────────────────────────────
+export function FieldInput({ field, value, onChange, imageFolder }) {
+  if (field.type === 'image') {
+    return <ImageUploadField value={value} onChange={onChange} folder={imageFolder || field.folder || ''} bucket={field.bucket || 'images'} />;
+  }
+  if (field.type === 'textarea') {
+    return <textarea className="adm-input" value={value ?? ''} onChange={(e) => onChange(field.name, e.target.value)} rows={3} placeholder={field.placeholder || ''} style={{ resize: 'none' }} />;
+  }
+  if (field.type === 'select') {
+    return (
+      <select className="adm-input" value={value ?? ''} onChange={(e) => onChange(field.name, e.target.value)} style={{ cursor: 'pointer' }}>
+        <option value="">— Select —</option>
+        {field.options.map((o) => <option key={o} value={o}>{o}</option>)}
+      </select>
+    );
+  }
+  if (field.type === 'boolean') {
+    const on = Boolean(value);
+    return (
+      <button type="button" className="adm-toggle" style={{ background: on ? 'var(--accent)' : 'rgba(255,255,255,0.12)' }} onClick={() => onChange(field.name, !on)}>
+        <span className="adm-toggle-thumb" style={{ left: on ? '21px' : '3px' }} />
+      </button>
+    );
+  }
+  if (field.type === 'number') {
+    return <input className="adm-input" type="number" value={value ?? ''} onChange={(e) => onChange(field.name, e.target.value)} placeholder={field.placeholder || ''} />;
+  }
+  if (field.type === 'date') {
+    return <input className="adm-input" type="date" value={value ?? ''} onChange={(e) => onChange(field.name, e.target.value)} style={{ colorScheme: 'dark' }} />;
+  }
+  return <input className="adm-input" type={field.type || 'text'} value={value ?? ''} onChange={(e) => onChange(field.name, e.target.value)} placeholder={field.placeholder || ''} />;
+}
 
-  const handleChange = (name, value) =>
-    setForm((prev) => ({ ...prev, [name]: value }));
+// ── Modal ─────────────────────────────────────────────────────────────────────
+export function Modal({ title, fields, data, onSave, onClose, saving, imageFolder }) {
+  const [form, setForm] = useState({ ...data });
+  const handleChange = (name, value) => setForm((p) => ({ ...p, [name]: value }));
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
-          <h2 className="text-lg font-bold text-gray-800">{title}</h2>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
-            <X size={18} />
-          </button>
+    <div className="adm-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="adm-modal modal-in">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 24px', borderBottom: '1px solid var(--border)' }}>
+          <p style={{ fontFamily: 'var(--font-head)', fontWeight: 700, color: 'var(--text)', fontSize: '0.95rem' }}>{title}</p>
+          <button className="adm-icon-btn edit" onClick={onClose}><X size={16} /></button>
         </div>
 
-        {/* Body */}
-        <div className="px-6 py-5 space-y-4">
+        <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
           {fields.map((field) => (
             <div key={field.name}>
-              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
-                {field.label}
-                {field.required && <span className="text-red-400 ml-1">*</span>}
+              <label className="adm-label">
+                {field.label}{field.required && <span style={{ color: '#f87171', marginLeft: 3 }}>*</span>}
               </label>
-              <FieldInput
-                field={field}
-                value={form[field.name]}
-                onChange={handleChange}
-              />
+              <FieldInput field={field} value={form[field.name]} onChange={handleChange} imageFolder={imageFolder} />
             </div>
           ))}
         </div>
 
-        {/* Footer */}
-        <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-100">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100 rounded-xl transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={() => onSave(form)}
-            disabled={saving}
-            className="flex items-center gap-2 px-4 py-2 bg-[#087830] hover:bg-[#065d24] disabled:opacity-60 text-white text-sm font-semibold rounded-xl transition-colors"
-          >
-            {saving ? (
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            ) : (
-              <Check size={14} />
-            )}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, padding: '14px 24px', borderTop: '1px solid var(--border)' }}>
+          <button className="adm-btn-ghost" onClick={onClose}>Cancel</button>
+          <button className="adm-btn-primary" onClick={() => onSave(form)} disabled={saving}>
+            {saving
+              ? <div className="spin-anim" style={{ width: 14, height: 14, border: '2px solid rgba(0,0,0,0.4)', borderTopColor: '#000', borderRadius: '50%' }} />
+              : <Check size={14} />}
             Save
           </button>
         </div>
@@ -146,141 +161,102 @@ export function Modal({ title, fields, data, onSave, onClose, saving }) {
   );
 }
 
-// ── Delete Confirm ─────────────────────────────────────────────────────────
+// ── Delete Confirm ────────────────────────────────────────────────────────────
 export function DeleteConfirm({ onConfirm, onCancel }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-8 text-center">
-        <div className="flex justify-center mb-4 text-red-500">
-          <AlertTriangle size={40} />
+    <div className="adm-overlay">
+      <div className="adm-modal modal-in" style={{ maxWidth: 360, padding: 36, textAlign: 'center' }}>
+        <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'rgba(239,68,68,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+          <AlertTriangle size={22} style={{ color: '#f87171' }} />
         </div>
-        <h2 className="text-xl font-bold text-gray-800 mb-2">Delete Entry?</h2>
-        <p className="text-gray-500 text-sm mb-6">This action cannot be undone.</p>
-        <div className="flex gap-3">
-          <button
-            onClick={onCancel}
-            className="flex-1 px-4 py-2.5 text-sm font-semibold text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={onConfirm}
-            className="flex-1 px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold rounded-xl transition-colors"
-          >
-            Delete
-          </button>
+        <p style={{ fontFamily: 'var(--font-head)', fontWeight: 700, color: 'var(--text)', fontSize: '1.05rem', marginBottom: 8 }}>Delete Entry?</p>
+        <p style={{ color: 'var(--text-3)', fontSize: 13, marginBottom: 24, lineHeight: 1.6 }}>This action cannot be undone.</p>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button className="adm-btn-ghost" style={{ flex: 1 }} onClick={onCancel}>Cancel</button>
+          <button onClick={onConfirm}
+            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#ef4444', color: 'white', border: 'none', borderRadius: 'var(--radius-sm)', padding: '9px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--font-body)', transition: 'background 0.2s' }}
+            onMouseEnter={(e) => e.currentTarget.style.background = '#dc2626'}
+            onMouseLeave={(e) => e.currentTarget.style.background = '#ef4444'}
+          >Delete</button>
         </div>
       </div>
     </div>
   );
 }
 
-// ── CRUDTable ─────────────────────────────────────────────────────────────
-export function CRUDTable({
-  title,
-  description,
-  columns,     // { key, label, render? }[]
-  fields,      // FieldInput configs for the form
-  rows,
-  loading,
-  onAdd,
-  onEdit,
-  onDelete,
-  defaultValues,
-}) {
-  const [showAdd, setShowAdd] = useState(false);
-  const [editRow, setEditRow] = useState(null);
+// ── CRUDTable ─────────────────────────────────────────────────────────────────
+export function CRUDTable({ title, description, columns, fields, rows, loading, onAdd, onEdit, onDelete, defaultValues, hideTitle, imageFolder }) {
+  const [showAdd,   setShowAdd]   = useState(false);
+  const [editRow,   setEditRow]   = useState(null);
   const [deleteRow, setDeleteRow] = useState(null);
-  const [saving, setSaving] = useState(false);
+  const [saving,    setSaving]    = useState(false);
 
   const handleSave = async (data) => {
     setSaving(true);
-    if (editRow) {
-      await onEdit(editRow.id, data);
-      setEditRow(null);
-    } else {
-      await onAdd(data);
-      setShowAdd(false);
-    }
+    if (editRow) { await onEdit(editRow.id, data); setEditRow(null); }
+    else         { await onAdd(data); setShowAdd(false); }
     setSaving(false);
-  };
-
-  const handleDelete = async () => {
-    await onDelete(deleteRow.id);
-    setDeleteRow(null);
   };
 
   return (
     <div>
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">{title}</h1>
-          {description && <p className="text-gray-500 text-sm mt-0.5">{description}</p>}
+      {!hideTitle && (
+        <div className="adm-panel-header" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, marginBottom: 24, flexWrap: 'wrap' }}>
+          <div>
+            <p className="adm-section-tag">Manage</p>
+            <h1 className="adm-h1">{title}</h1>
+            {description && <p style={{ color: 'var(--text-3)', fontSize: 13, marginTop: 4, lineHeight: 1.6 }}>{description}</p>}
+          </div>
+          <div className="adm-panel-actions" style={{ display: 'flex' }}>
+            <button className="adm-btn-primary" onClick={() => setShowAdd(true)}><Plus size={15} /> Add New</button>
+          </div>
         </div>
-        <button
-          onClick={() => setShowAdd(true)}
-          className="flex items-center gap-2 bg-[#087830] hover:bg-[#065d24] text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors self-start"
-        >
-          <Plus size={16} /> Add New
-        </button>
-      </div>
+      )}
+
+      {hideTitle && (
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
+          <button className="adm-btn-primary" onClick={() => setShowAdd(true)}><Plus size={15} /> Add New</button>
+        </div>
+      )}
 
       {/* Table */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="adm-surface">
         {loading ? (
-          <div className="flex justify-center py-16">
-            <div className="w-8 h-8 border-4 border-[#087830] border-t-transparent rounded-full animate-spin" />
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '56px 0' }}>
+            <div className="spin-anim" style={{ width: 26, height: 26, border: '2px solid var(--accent)', borderTopColor: 'transparent', borderRadius: '50%' }} />
           </div>
         ) : rows.length === 0 ? (
-          <div className="text-center py-16 text-gray-400">
-            <p className="text-4xl mb-3">📭</p>
-            <p className="font-medium">No entries yet.</p>
-            <p className="text-sm">Click "Add New" to get started.</p>
+          <div style={{ textAlign: 'center', padding: '56px 0', color: 'var(--text-3)' }}>
+            <p style={{ fontSize: 36, marginBottom: 12 }}>📭</p>
+            <p style={{ fontSize: 14, fontWeight: 500 }}>No entries yet.</p>
+            <p style={{ fontSize: 13, marginTop: 4 }}>Click "Add New" to get started.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
-                <tr className="border-b border-gray-100 bg-gray-50">
+                <tr style={{ borderBottom: '1px solid var(--border)', background: 'rgba(255,255,255,0.02)' }}>
                   {columns.map((col) => (
-                    <th
-                      key={col.key}
-                      className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider px-5 py-3"
-                    >
+                    <th key={col.key} style={{ textAlign: 'left', fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-3)', padding: '10px 16px', whiteSpace: 'nowrap' }}>
                       {col.label}
                     </th>
                   ))}
-                  <th className="px-5 py-3" />
+                  <th style={{ padding: '10px 16px' }} />
                 </tr>
               </thead>
               <tbody>
-                {rows.map((row, i) => (
-                  <tr
-                    key={row.id}
-                    className={`border-b border-gray-50 hover:bg-gray-50 transition-colors ${
-                      i === rows.length - 1 ? 'border-0' : ''
-                    }`}
-                  >
+                {rows.map((row) => (
+                  <tr key={row.id} className="adm-row">
                     {columns.map((col) => (
-                      <td key={col.key} className="px-5 py-3.5 text-gray-700 max-w-xs truncate">
-                        {col.render ? col.render(row[col.key], row) : row[col.key] ?? '—'}
+                      <td key={col.key} style={{ padding: '12px 16px', color: 'var(--text)', maxWidth: 240, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>
+                        {col.render ? col.render(row[col.key], row) : (row[col.key] ?? <span style={{ color: 'var(--text-3)' }}>—</span>)}
                       </td>
                     ))}
-                    <td className="px-5 py-3.5">
-                      <div className="flex items-center gap-2 justify-end">
-                        <button
-                          onClick={() => setEditRow(row)}
-                          className="p-1.5 text-gray-400 hover:text-[#087830] hover:bg-green-50 rounded-lg transition-colors"
-                        >
-                          <Pencil size={15} />
-                        </button>
-                        <button
-                          onClick={() => setDeleteRow(row)}
-                          className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                        >
-                          <Trash2 size={15} />
-                        </button>
+                    <td style={{ padding: '12px 16px', verticalAlign: 'middle' }}>
+                      <div style={{ display: 'flex', gap: 4, justifyContent: 'flex-end' }}>
+                        <button className="adm-icon-btn edit" onClick={() => setEditRow(row)}><Pencil size={14} /></button>
+                        <button className="adm-icon-btn del"  onClick={() => setDeleteRow(row)}><Trash2 size={14} /></button>
                       </div>
                     </td>
                   </tr>
@@ -291,20 +267,18 @@ export function CRUDTable({
         )}
       </div>
 
-      {/* Modals */}
       {(showAdd || editRow) && (
         <Modal
-          title={editRow ? 'Edit Entry' : 'Add New Entry'}
+          title={editRow ? `Edit ${title}` : `Add ${title}`}
           fields={fields}
           data={editRow || defaultValues || {}}
           onSave={handleSave}
           onClose={() => { setShowAdd(false); setEditRow(null); }}
           saving={saving}
+          imageFolder={imageFolder}
         />
       )}
-      {deleteRow && (
-        <DeleteConfirm onConfirm={handleDelete} onCancel={() => setDeleteRow(null)} />
-      )}
+      {deleteRow && <DeleteConfirm onConfirm={async () => { await onDelete(deleteRow.id); setDeleteRow(null); }} onCancel={() => setDeleteRow(null)} />}
     </div>
   );
 }

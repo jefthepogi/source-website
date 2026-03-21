@@ -4,22 +4,6 @@ import { supabase } from '../lib/supabase';
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
-const STYLES = `
-  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700&family=Outfit:wght@300;400;500&display=swap');
-  :root {
-    --bg-2:#131615; --bg-3:#191c1a; --border:rgba(255,255,255,0.07); --border-md:rgba(255,255,255,0.11);
-    --accent:#22c55e; --accent-dim:#22c55e22; --text:#f0f2f1; --text-2:#9aa39d; --text-3:#5a6560;
-    --font-head:'Syne',sans-serif; --font-body:'Outfit',sans-serif; --radius:14px;
-  }
-  .news-root { font-family: var(--font-body); }
-  .news-wrap { background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
-  .news-slider .slick-slide > div { height: 100%; }
-  .news-slider .slick-list, .news-slider .slick-track, .news-slider .slick-slide { height: 100%; }
-  .news-dot { border-radius: 100px; cursor: pointer; transition: all 0.3s ease; background: rgba(255,255,255,0.2); }
-  .news-dot.active { background: var(--accent); }
-  @keyframes progress { from { width: 0 } to { width: 100% } }
-`;
-
 export default function NewsCarousel() {
   const [newsData, setNewsData] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -45,7 +29,6 @@ export default function NewsCarousel() {
 
   return (
     <>
-      <style>{STYLES}</style>
       <div className="news-root" style={{ maxWidth: '960px', margin: '0 auto' }}>
         <div className="news-wrap" style={{ display: 'grid', gridTemplateColumns: '2fr 3fr' }}>
 

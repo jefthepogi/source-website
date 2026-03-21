@@ -3,27 +3,6 @@ import { supabase } from '../lib/supabase';
 import HeaderBgImage from '../assets/officer_header-bg.jpg';
 import officerStructure from '../assets/officer-structure.png';
 
-const S = `
-  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Outfit:wght@300;400;500;600&display=swap');
-  :root {
-    --bg:#0d0f0e; --bg-2:#131615; --bg-3:#191c1a; --bg-4:#1f2421;
-    --border:rgba(255,255,255,0.07); --border-md:rgba(255,255,255,0.11);
-    --accent:#22c55e; --accent-dim:#22c55e18;
-    --text:#f0f2f1; --text-2:#9aa39d; --text-3:#5a6560;
-    --font-head:'Syne',sans-serif; --font-body:'Outfit',sans-serif; --radius:14px;
-  }
-  .officers-root { font-family: var(--font-body); background: var(--bg); color: var(--text); }
-  .officer-card {
-    background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius);
-    overflow: hidden; transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
-  }
-  .officer-card:hover { transform: translateY(-4px); border-color: var(--border-md); box-shadow: 0 12px 40px rgba(0,0,0,0.4); }
-  .officer-card img { transition: transform 0.5s ease; }
-  .officer-card:hover img { transform: scale(1.05); }
-  .fade-in { animation: fadeUp 0.45s ease both; }
-  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
-`;
-
 export default function OfficersPage() {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -35,7 +14,7 @@ export default function OfficersPage() {
         if (!error && data) {
           const grouped = data.reduce((acc, o) => { if (!acc[o.category]) acc[o.category] = []; acc[o.category].push(o); return acc; }, {});
           setCategories(Object.entries(grouped).map(([cat, officers]) => ({ category: cat, officers })));
-          if (data.length) setAcademicYear(data[0].academic_year || '2024–2025');
+          if (data.length) setAcademicYear(data[0].academic_year || '2025–2026');
         }
         setLoading(false);
       });
@@ -43,11 +22,10 @@ export default function OfficersPage() {
 
   return (
     <>
-      <style>{S}</style>
       <div className="officers-root">
 
         {/* Hero */}
-        <div style={{ position: 'relative', height: '420px', overflow: 'hidden', background: '#0a0c0b' }}>
+        <div style={{ position: 'relative', height: 'clamp(280px,45vw,420px)', overflow: 'hidden', background: '#0a0c0b' }}>
           <img src={HeaderBgImage} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(160deg, rgba(8,12,10,0.92) 0%, rgba(8,12,10,0.7) 50%, rgba(8,12,10,0.4) 100%)' }} />
           <div style={{ position: 'absolute', inset: 0, backgroundImage: 'radial-gradient(rgba(34,197,94,0.1) 1px, transparent 1px)', backgroundSize: '32px 32px', opacity: 0.5 }} />
@@ -113,7 +91,7 @@ function CategorySection({ category, officers, delay }) {
         <h3 style={{ fontFamily: "'Syne',sans-serif", fontWeight: 700, fontSize: '1.2rem', color: '#f0f2f1' }}>{category}</h3>
         <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.07)' }} />
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%,160px), 1fr))', gap: 16 }}>
         {officers.map((o) => (
           <div key={o.id} className="officer-card">
             <div style={{ aspectRatio: '1', overflow: 'hidden', background: '#191c1a' }}>

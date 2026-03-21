@@ -27,22 +27,24 @@ function AppContent() {
   const isMentorsDay = location.pathname === '/mentorsday';
   const isAdmin = location.pathname.startsWith('/admin');
 
-  // Admin panel has its own full-screen layout
   if (isAdmin) {
     return <AdminApp />;
   }
 
   return (
-    <div className="App" data-theme="light">
+    // ← removed data-theme="light" — that was causing DaisyUI to force a white background
+    <div style={{ minHeight: '100vh', background: '#0d0f0e' }}>
       {!isMentorsDay && <Navbar />}
 
       <Routes>
+        {/* HomePage hero slides under the transparent navbar intentionally — no offset needed */}
         <Route path="/" element={<HomePage />} />
-        <Route path="/officers" element={<OfficersPage />} />
-        <Route path="/events" element={<EventsPage />} />
-        <Route path="/contacts" element={<ContactsPage />} />
-        <Route path="/merch" element={<MerchPage />} />
-        <Route path="/letsdebug" element={<CodeSnippetsPage />} />
+        {/* All other pages need 60px top padding to clear the fixed navbar */}
+        <Route path="/officers" element={<div style={{ paddingTop: 60 }}><OfficersPage /></div>} />
+        <Route path="/events"   element={<div style={{ paddingTop: 60 }}><EventsPage /></div>} />
+        <Route path="/contacts" element={<div style={{ paddingTop: 60 }}><ContactsPage /></div>} />
+        <Route path="/merch"    element={<div style={{ paddingTop: 60 }}><MerchPage /></div>} />
+        <Route path="/letsdebug" element={<div style={{ paddingTop: 60 }}><CodeSnippetsPage /></div>} />
         <Route path="/mentorsday" element={<MentorsDay />} />
         <Route path="/*" element={<FlexibleRedirect />} />
       </Routes>
@@ -56,9 +58,7 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* Admin panel - full screen, no Navbar/Footer */}
         <Route path="/admin/*" element={<AdminApp />} />
-        {/* Rest of the site */}
         <Route path="/*" element={<AppContent />} />
       </Routes>
     </Router>

@@ -4,23 +4,6 @@ import { Mail, Send, CheckCircle, Facebook } from 'lucide-react';
 import { FaDiscord } from 'react-icons/fa';
 import HeaderBgImage from '../assets/header-bg.jpg';
 
-const S = `
-  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Outfit:wght@300;400;500;600&display=swap');
-  :root {
-    --bg:#0d0f0e; --bg-2:#131615; --bg-3:#191c1a; --bg-4:#1f2421;
-    --border:rgba(255,255,255,0.07); --border-md:rgba(255,255,255,0.11);
-    --accent:#22c55e; --accent-dim:#22c55e18;
-    --text:#f0f2f1; --text-2:#9aa39d; --text-3:#5a6560;
-    --font-head:'Syne',sans-serif; --font-body:'Outfit',sans-serif; --radius:14px;
-  }
-  .contacts-root { font-family:var(--font-body); background:var(--bg); color:var(--text); }
-  .ds-input { width:100%; padding:11px 14px; background:var(--bg-3); border:1px solid var(--border-md); border-radius:8px; color:var(--text); font-family:var(--font-body); font-size:13px; outline:none; transition:border-color 0.2s, box-shadow 0.2s; }
-  .ds-input::placeholder { color:var(--text-3); }
-  .ds-input:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(34,197,94,0.08); }
-  .channel-card { display:flex; align-items:center; gap:14px; padding:14px 16px; background:var(--bg-2); border:1px solid var(--border); border-radius:var(--radius); text-decoration:none; transition:border-color 0.2s, transform 0.2s; }
-  .channel-card:hover { border-color:var(--border-md); transform:translateY(-2px); }
-`;
-
 const CHANNELS = [
   { icon: <Facebook size={18} />, label: 'Facebook', handle: 'LSU-SOURCE', href: 'https://www.facebook.com/LSU.SOURCE', color: '#1877f2' },
   { icon: <FaDiscord size={18} />, label: 'Discord', handle: 'Join our server', href: 'https://discord.gg/UEBu2gtETH', color: '#5865f2' },
@@ -49,11 +32,10 @@ export default function ContactsPage() {
 
   return (
     <>
-      <style>{S}</style>
       <div className="contacts-root">
 
         {/* Hero */}
-        <div style={{ position:'relative', height:'360px', overflow:'hidden', background:'#0a0c0b' }}>
+        <div style={{ position:'relative', height:'clamp(260px,40vw,360px)', overflow:'hidden', background:'#0a0c0b' }}>
           <img src={HeaderBgImage} alt="" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
           <div style={{ position:'absolute', inset:0, background:'linear-gradient(160deg, rgba(8,12,10,0.93) 0%, rgba(8,12,10,0.72) 55%, rgba(8,12,10,0.4) 100%)' }} />
           <div style={{ position:'absolute', inset:0, backgroundImage:'radial-gradient(rgba(34,197,94,0.1) 1px, transparent 1px)', backgroundSize:'32px 32px', opacity:0.45 }} />
@@ -70,7 +52,7 @@ export default function ContactsPage() {
 
         {/* Content */}
         <div style={{ padding:'72px 11vw' }}>
-          <div style={{ maxWidth:'960px', margin:'0 auto', display:'grid', gridTemplateColumns:'2fr 3fr', gap:'64px' }}>
+          <div className="contacts-grid" style={{ maxWidth:'960px', margin:'0 auto', display:'grid', gridTemplateColumns:'2fr 3fr', gap:'clamp(24px,5vw,64px)' }}>
 
             {/* Left */}
             <div style={{ display:'flex', flexDirection:'column', gap:24 }}>
@@ -142,7 +124,7 @@ export default function ContactsPage() {
                   )}
 
                   <form onSubmit={handleSubmit} style={{ display:'flex', flexDirection:'column', gap:10 }}>
-                    <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+                    <div className="contacts-form-grid" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
                       <Field label="Name *"><input className="ds-input" name="name" value={form.name} onChange={handleChange} placeholder="Your full name" /></Field>
                       <Field label="Email *"><input className="ds-input" type="email" name="email" value={form.email} onChange={handleChange} placeholder="your@email.com" /></Field>
                     </div>
