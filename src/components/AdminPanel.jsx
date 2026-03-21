@@ -262,23 +262,22 @@ export default function AdminApp() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Fetch the admin_users record once when the user logs in.
-  // We key on user ID so token refreshes don't retrigger this.
+  const userId = session?.user?.id;
+  const userEmail = session?.user?.email;
+
   useEffect(() => {
-    if (!session?.user) { setAdminRecord(null); setLoadingRole(false); return; }
-    // Already have a record for this exact user — skip refetch
-    if (adminRecord !== null) { setLoadingRole(false); return; }
+    if (!userId || !userEmail) { setAdminRecord(null); setLoadingRole(false); return; }
     setLoadingRole(true);
     supabase
       .from('admin_users')
       .select('*')
-      .eq('email', session.user.email)
+      .eq('email', userEmail)
       .maybeSingle()
       .then(({ data }) => {
         setAdminRecord(data);
         setLoadingRole(false);
       });
-  }, [session?.user?.id]); // only re-run when the actual user changes, not on token refresh
+  }, [userId, userEmail]); // stable primitives — won't re-run on token refresh
 
   const handleLogout = () => supabase.auth.signOut();
 
