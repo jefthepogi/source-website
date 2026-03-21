@@ -13,13 +13,6 @@ const FIELDS = [
   // sort_order is managed via drag-and-drop, not a manual field
 ];
 
-const COLUMNS = [
-  { key: 'image_url', label: '', render: (v) => <img src={v || 'https://placehold.co/40x40/191c1a/22c55e?text=?'} alt="" style={{ width: 38, height: 38, borderRadius: '50%', objectFit: 'cover', border: '1px solid rgba(255,255,255,0.1)' }} /> },
-  { key: 'name',      label: 'Name' },
-  { key: 'position',  label: 'Position' },
-  { key: 'category',  label: 'Committee' },
-  { key: 'published', label: 'Visible', render: (v) => <span className={v ? 'adm-badge-yes' : 'adm-badge-no'}>{v ? 'Yes' : 'No'}</span> },
-];
 
 // ── Drag-and-drop sortable list ───────────────────────────────────────────────
 function SortableOfficerList({ rows, onReorder, onEdit, onDelete }) {
