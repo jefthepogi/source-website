@@ -628,7 +628,7 @@ export default function MerchPage() {
     if (item.category) addRow('Category', item.category);
     addRow('Price', 'PHP ' + Number(item.price).toFixed(2));
     if (orderData.size) addRow('Size', orderData.size);
-    const backTextValue = orderData.backText?.trim() || orderData.lastName?.trim();
+    const backTextValue = orderData._hasBackText ? (orderData.backText?.trim() || orderData.lastName?.trim()) : null;
     if (backTextValue) addRow('Back Text', backTextValue);
 
     addDivider();
@@ -710,10 +710,10 @@ export default function MerchPage() {
         gcash_reference: formData.gcashReference.trim() || null,
         item_name: selectedItem.name,
         item_id: selectedItem.id,
-        back_text: formData.backText.trim() || formData.lastName.trim() || null,
+        back_text: hasBackText(selectedItem) ? (formData.backText.trim() || formData.lastName.trim() || null) : null,
       }]);
       if (error) throw error;
-      generateReceipt(formData, selectedItem);
+      generateReceipt({ ...formData, _hasBackText: hasBackText(selectedItem) }, selectedItem);
       toast.success('Pre-order confirmed! Your receipt is downloading.', {
         style: { background: '#131615', color: '#f0f2f1', border: '1px solid rgba(34,197,94,0.3)', fontFamily: "'Outfit',sans-serif" },
         duration: 4000,

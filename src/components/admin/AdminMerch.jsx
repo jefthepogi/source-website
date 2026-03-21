@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import '../../admin.css';
 import { supabase } from '../../lib/supabase';
 import { CRUDTable } from './CRUDTable';
-import { ShoppingBag, Download, X, Eye, Users, CheckCircle, Circle, Trash2, AlertTriangle, TrendingUp } from 'lucide-react';
+import { ShoppingBag, Download, X, Eye, Users, CheckCircle, Circle, Trash2, AlertTriangle, TrendingUp, Pencil } from 'lucide-react';
 
 const MERCH_FIELDS = [
   { name: 'name',        label: 'Item Name',   type: 'text',     required: true },
@@ -126,6 +126,9 @@ export default function AdminMerch() {
   const [loadingOrders,     setLoadingOrders]     = useState(true);
   const [selectedOrder,     setSelectedOrder]     = useState(null);
   const [deleteOrderTarget, setDeleteOrderTarget] = useState(null);
+  const [editOrderTarget, setEditOrderTarget] = useState(null);
+  const [editForm,        setEditForm]        = useState({});
+  const [savingEdit,      setSavingEdit]      = useState(false);
   const [filterItem,        setFilterItem]        = useState('all');
   const [filterPaid,        setFilterPaid]        = useState('all');
   const [itemNames,         setItemNames]         = useState(['all']);
@@ -163,6 +166,28 @@ export default function AdminMerch() {
     setOrders((prev) => prev.filter((o) => o.id !== deleteOrderTarget.id));
     if (selectedOrder?.id === deleteOrderTarget.id) setSelectedOrder(null);
     setDeleteOrderTarget(null);
+  };
+
+  const saveEdit = async () => {
+    setSavingEdit(true);
+    const payload = {
+      first_name:       editForm.first_name.trim()      || null,
+      middle_initial:   editForm.middle_initial.trim()  || null,
+      last_name:        editForm.last_name.trim()        || null,
+      sex:              editForm.sex                     || null,
+      phone_number:     editForm.phone_number.trim()    || null,
+      email:            editForm.email.trim()            || null,
+      size:             editForm.size                    || null,
+      back_text:        editForm.back_text.trim()        || null,
+      payment_method:   editForm.payment_method          || null,
+      gcash_reference:  editForm.gcash_reference.trim() || null,
+    };
+    await supabase.from('merch_preorders').update(payload).eq('id', editOrderTarget.id);
+    const updated = { ...editOrderTarget, ...payload };
+    setOrders((prev) => prev.map((o) => o.id === editOrderTarget.id ? updated : o));
+    if (selectedOrder?.id === editOrderTarget.id) setSelectedOrder(updated);
+    setEditOrderTarget(null);
+    setSavingEdit(false);
   };
 
   const exportCSV = () => {
@@ -292,22 +317,20 @@ export default function AdminMerch() {
             </div>
           ) : (
             <div style={{ background: '#131615', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, overflow: 'hidden' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '28px 1.8fr 1.2fr 0.8fr 0.9fr 0.6fr 0.85fr 0.75fr 56px', padding: '10px 16px', borderBottom: '1px solid rgba(255,255,255,0.07)', background: 'rgba(255,255,255,0.02)' }}>
-                {['#', 'Customer', 'Email', 'Phone', 'Item', 'Size', 'Payment', 'Paid', ''].map((h) => (
+              <div style={{ overflowX: 'auto' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1.8fr 1.4fr 0.6fr 0.9fr 0.85fr 68px', padding: '10px 16px', borderBottom: '1px solid rgba(255,255,255,0.07)', background: 'rgba(255,255,255,0.02)', minWidth: 520 }}>
+                {['Customer', 'Item', 'Size', 'Payment', 'Paid', ''].map((h) => (
                   <span key={h} style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#5a6560' }}>{h}</span>
                 ))}
               </div>
               {filteredOrders.map((o, i) => (
                 <div key={o.id} className="order-row"
-                  style={{ display: 'grid', gridTemplateColumns: '28px 1.8fr 1.2fr 0.8fr 0.9fr 0.6fr 0.85fr 0.75fr 56px', padding: '11px 16px', alignItems: 'center', cursor: 'pointer' }}
+                  style={{ display: 'grid', gridTemplateColumns: '1.8fr 1.4fr 0.6fr 0.9fr 0.85fr 68px', padding: '11px 16px', alignItems: 'center', cursor: 'pointer', minWidth: 520 }}
                   onClick={() => setSelectedOrder(o)}
                 >
-                  <span style={{ fontSize: 11, color: '#5a6560', fontWeight: 600 }}>{i + 1}</span>
                   <span style={{ fontSize: 13, color: '#f0f2f1', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {[o.first_name, o.middle_initial ? o.middle_initial + '.' : '', o.last_name].filter(Boolean).join(' ')}
                   </span>
-                  <span style={{ fontSize: 12, color: '#9aa39d', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{o.email}</span>
-                  <span style={{ fontSize: 12, color: '#9aa39d' }}>{o.phone_number}</span>
                   <span style={{ fontSize: 12, color: '#f0f2f1', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{o.item_name}</span>
                   <span style={{ fontSize: 12 }}>
                     {o.size
@@ -333,6 +356,12 @@ export default function AdminMerch() {
                   </span>
                   <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
                     <button style={{ background: 'transparent', border: 'none', color: '#5a6560', cursor: 'pointer', padding: 4, display: 'flex', borderRadius: 6, transition: 'color 0.15s' }}
+                      onClick={(e) => { e.stopPropagation(); setEditOrderTarget(o); setEditForm({ first_name: o.first_name || '', middle_initial: o.middle_initial || '', last_name: o.last_name || '', sex: o.sex || '', phone_number: o.phone_number || '', email: o.email || '', size: o.size || '', back_text: o.back_text || '', payment_method: o.payment_method || '', gcash_reference: o.gcash_reference || '' }); }}
+                      onMouseEnter={(e) => e.currentTarget.style.color = '#22c55e'}
+                      onMouseLeave={(e) => e.currentTarget.style.color = '#5a6560'}>
+                      <Pencil size={13} />
+                    </button>
+                    <button style={{ background: 'transparent', border: 'none', color: '#5a6560', cursor: 'pointer', padding: 4, display: 'flex', borderRadius: 6, transition: 'color 0.15s' }}
                       onClick={(e) => { e.stopPropagation(); setSelectedOrder(o); }}
                       onMouseEnter={(e) => e.currentTarget.style.color = '#9aa39d'}
                       onMouseLeave={(e) => e.currentTarget.style.color = '#5a6560'}>
@@ -347,6 +376,7 @@ export default function AdminMerch() {
                   </div>
                 </div>
               ))}
+              </div>
             </div>
           )}
         </div>
@@ -409,6 +439,127 @@ export default function AdminMerch() {
         </div>
       )}
 
+
+      {editOrderTarget && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)', padding: 16 }}>
+          <div style={{ background: '#131615', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 16, width: '100%', maxWidth: 460, maxHeight: '90vh', overflowY: 'auto' }}>
+            {/* Header */}
+            <div style={{ padding: '20px 24px 0', borderBottom: '1px solid rgba(255,255,255,0.07)', paddingBottom: 16, marginBottom: 20, position: 'sticky', top: 0, background: '#131615', zIndex: 1 }}>
+              <p style={{ fontFamily: "'Syne',sans-serif", fontWeight: 700, color: '#f0f2f1', fontSize: '1rem', margin: 0 }}>Edit Pre-Order</p>
+              <p style={{ fontSize: 12, color: '#5a6560', marginTop: 3 }}>{editOrderTarget.item_name}</p>
+            </div>
+            <div style={{ padding: '0 24px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+
+              {/* Name row */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 64px 1fr', gap: 8 }}>
+                <div>
+                  <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#5a6560', marginBottom: 6 }}>First Name</p>
+                  <input className="adm-input" value={editForm.first_name} onChange={(e) => setEditForm((p) => ({ ...p, first_name: e.target.value }))} placeholder="First name" />
+                </div>
+                <div>
+                  <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#5a6560', marginBottom: 6 }}>M.I.</p>
+                  <input className="adm-input" value={editForm.middle_initial} onChange={(e) => setEditForm((p) => ({ ...p, middle_initial: e.target.value }))} placeholder="M" maxLength={2} />
+                </div>
+                <div>
+                  <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#5a6560', marginBottom: 6 }}>Last Name</p>
+                  <input className="adm-input" value={editForm.last_name} onChange={(e) => setEditForm((p) => ({ ...p, last_name: e.target.value }))} placeholder="Last name" />
+                </div>
+              </div>
+
+              {/* Sex */}
+              <div>
+                <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#5a6560', marginBottom: 8 }}>Sex</p>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  {['Male', 'Female'].map((s) => (
+                    <button key={s} type="button" onClick={() => setEditForm((p) => ({ ...p, sex: s }))}
+                      style={{ flex: 1, padding: '8px', borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: "'Outfit',sans-serif", border: '1px solid', transition: 'all 0.15s',
+                        background: editForm.sex === s ? '#22c55e' : 'rgba(255,255,255,0.05)',
+                        color:      editForm.sex === s ? '#000'    : '#9aa39d',
+                        borderColor: editForm.sex === s ? '#22c55e' : 'rgba(255,255,255,0.1)',
+                      }}>{s}</button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Contact */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                <div>
+                  <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#5a6560', marginBottom: 6 }}>Email</p>
+                  <input className="adm-input" type="email" value={editForm.email} onChange={(e) => setEditForm((p) => ({ ...p, email: e.target.value }))} placeholder="email@example.com" />
+                </div>
+                <div>
+                  <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#5a6560', marginBottom: 6 }}>Phone</p>
+                  <input className="adm-input" value={editForm.phone_number} onChange={(e) => setEditForm((p) => ({ ...p, phone_number: e.target.value }))} placeholder="09XXXXXXXXX" />
+                </div>
+              </div>
+
+              {/* Size */}
+              <div>
+                <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#5a6560', marginBottom: 8 }}>Size</p>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  {['XS','S','M','L','XL','2XL','3XL'].map((sz) => (
+                    <button key={sz} type="button" onClick={() => setEditForm((p) => ({ ...p, size: sz }))}
+                      style={{ minWidth: 44, height: 36, borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: "'Outfit',sans-serif", border: '1px solid', padding: '0 10px', transition: 'all 0.15s',
+                        background: editForm.size === sz ? '#22c55e' : 'rgba(255,255,255,0.05)',
+                        color:      editForm.size === sz ? '#000'    : '#9aa39d',
+                        borderColor: editForm.size === sz ? '#22c55e' : 'rgba(255,255,255,0.1)',
+                      }}>{sz}</button>
+                  ))}
+                  <button type="button" onClick={() => setEditForm((p) => ({ ...p, size: '' }))}
+                    style={{ minWidth: 44, height: 36, borderRadius: 8, fontSize: 12, fontWeight: 500, cursor: 'pointer', fontFamily: "'Outfit',sans-serif", border: '1px solid rgba(255,255,255,0.1)', padding: '0 10px', transition: 'all 0.15s',
+                      background: editForm.size === '' ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.05)', color: '#9aa39d' }}>
+                    None
+                  </button>
+                </div>
+              </div>
+
+              {/* Back text */}
+              <div>
+                <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#5a6560', marginBottom: 6 }}>Back Text</p>
+                <input className="adm-input" value={editForm.back_text} onChange={(e) => setEditForm((p) => ({ ...p, back_text: e.target.value }))} placeholder="e.g. DELA CRUZ" maxLength={20} />
+              </div>
+
+              {/* Payment method */}
+              <div>
+                <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#5a6560', marginBottom: 8 }}>Payment Method</p>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  {['Cash', 'GCash'].map((m) => (
+                    <button key={m} type="button" onClick={() => setEditForm((p) => ({ ...p, payment_method: m }))}
+                      style={{ flex: 1, padding: '8px', borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: "'Outfit',sans-serif", border: '1px solid', transition: 'all 0.15s',
+                        background: editForm.payment_method === m ? (m === 'GCash' ? 'rgba(96,165,250,0.15)' : 'rgba(34,197,94,0.12)') : 'rgba(255,255,255,0.05)',
+                        color:      editForm.payment_method === m ? (m === 'GCash' ? '#93c5fd' : '#22c55e') : '#9aa39d',
+                        borderColor: editForm.payment_method === m ? (m === 'GCash' ? 'rgba(96,165,250,0.3)' : 'rgba(34,197,94,0.3)') : 'rgba(255,255,255,0.1)',
+                      }}>{m}</button>
+                  ))}
+                </div>
+              </div>
+
+              {/* GCash reference — only if GCash selected */}
+              {editForm.payment_method === 'GCash' && (
+                <div>
+                  <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#5a6560', marginBottom: 6 }}>GCash Reference No.</p>
+                  <input className="adm-input" value={editForm.gcash_reference} onChange={(e) => setEditForm((p) => ({ ...p, gcash_reference: e.target.value }))} placeholder="Reference number" />
+                </div>
+              )}
+
+              {/* Actions */}
+              <div style={{ display: 'flex', gap: 10, paddingTop: 4 }}>
+                <button onClick={() => setEditOrderTarget(null)}
+                  style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: '1px solid rgba(255,255,255,0.11)', color: '#9aa39d', borderRadius: 8, padding: '10px 16px', fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: "'Outfit',sans-serif" }}>
+                  Cancel
+                </button>
+                <button onClick={saveEdit} disabled={savingEdit}
+                  style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: '#22c55e', color: '#000', border: 'none', borderRadius: 8, padding: '10px 16px', fontSize: 13, fontWeight: 600, cursor: savingEdit ? 'not-allowed' : 'pointer', fontFamily: "'Outfit',sans-serif", opacity: savingEdit ? 0.6 : 1, transition: 'background 0.2s' }}
+                  onMouseEnter={(e) => !savingEdit && (e.currentTarget.style.background = '#28d468')}
+                  onMouseLeave={(e) => !savingEdit && (e.currentTarget.style.background = '#22c55e')}>
+                  {savingEdit && <div style={{ width: 14, height: 14, border: '2px solid rgba(0,0,0,0.4)', borderTopColor: '#000', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />}
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       {deleteOrderTarget && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)', padding: 16 }}>
           <div style={{ background: '#131615', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 16, width: '100%', maxWidth: 360, padding: 32, textAlign: 'center' }}>
