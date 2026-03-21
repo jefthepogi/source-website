@@ -108,9 +108,10 @@ function SortableOfficerList({ rows, onReorder, onEdit, onDelete }) {
       </div>
 
       {/* Table */}
-      <div style={{ background: 'var(--bg-2)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', overflow: 'hidden' }}>
+      <div style={{ overflowX: 'auto' }}>
+      <div style={{ background: 'var(--bg-2)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', overflow: 'hidden', minWidth: 620 }}>
         {/* Head */}
-        <div style={{ display: 'grid', gridTemplateColumns: '32px 44px 1.8fr 1.2fr 1.2fr 80px 80px', gap: 0, padding: '10px 16px', borderBottom: '1px solid var(--border)', background: 'rgba(255,255,255,0.02)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '32px 44px 1.8fr 1.2fr 1.2fr 70px 140px', gap: 0, padding: '10px 16px', borderBottom: '1px solid var(--border)', background: 'rgba(255,255,255,0.02)' }}>
           {['', '', 'Name', 'Position', 'Committee', 'Visible', ''].map((h, i) => (
             <span key={i} style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-3)' }}>{h}</span>
           ))}
@@ -132,7 +133,7 @@ function SortableOfficerList({ rows, onReorder, onEdit, onDelete }) {
               onDrop={(e) => handleDrop(e, idx)}
               style={{
                 display: 'grid',
-                gridTemplateColumns: '32px 44px 1.8fr 1.2fr 1.2fr 80px 80px',
+                gridTemplateColumns: '32px 44px 1.8fr 1.2fr 1.2fr 70px 140px',
                 gap: 0,
                 padding: '11px 16px',
                 alignItems: 'center',
@@ -196,6 +197,8 @@ function SortableOfficerList({ rows, onReorder, onEdit, onDelete }) {
             </div>
           ))
         )}
+      </div>
+
       </div>
 
       {hasChanges && (
