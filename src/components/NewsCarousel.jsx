@@ -1,95 +1,101 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Slider from 'react-slick';
-import { useQuery, gql } from '@apollo/client';
+import { supabase } from '../lib/supabase';
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
-// Define the GraphQL query
-const GET_NEWS = gql`
-  query {
-    newsAPIConnection {
-      edges {
-        node {
-          title
-          date
-          image {
-            url
-          }
-          description {
-            markdown
-          }
-          tag
-        }
-      }
-    }
+const STYLES = `
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700&family=Outfit:wght@300;400;500&display=swap');
+  :root {
+    --bg-2:#131615; --bg-3:#191c1a; --border:rgba(255,255,255,0.07); --border-md:rgba(255,255,255,0.11);
+    --accent:#22c55e; --accent-dim:#22c55e22; --text:#f0f2f1; --text-2:#9aa39d; --text-3:#5a6560;
+    --font-head:'Syne',sans-serif; --font-body:'Outfit',sans-serif; --radius:14px;
   }
+  .news-root { font-family: var(--font-body); }
+  .news-wrap { background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .news-slider .slick-slide > div { height: 100%; }
+  .news-slider .slick-list, .news-slider .slick-track, .news-slider .slick-slide { height: 100%; }
+  .news-dot { border-radius: 100px; cursor: pointer; transition: all 0.3s ease; background: rgba(255,255,255,0.2); }
+  .news-dot.active { background: var(--accent); }
+  @keyframes progress { from { width: 0 } to { width: 100% } }
 `;
 
-function NewsCarousel() {
+export default function NewsCarousel() {
+  const [newsData, setNewsData] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [loading, setLoading] = useState(true);
 
-  // Fetch data using Apollo Client
-  const { data, loading, error } = useQuery(GET_NEWS);
+  useEffect(() => {
+    supabase.from('news').select('*').eq('published', true).order('date', { ascending: false }).limit(10)
+      .then(({ data, error }) => { if (!error && data) setNewsData(data); setLoading(false); });
+  }, []);
 
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>Error: {error.message}</p>;
+  const settings = { dots: false, infinite: true, speed: 600, slidesToShow: 1, slidesToScroll: 1, autoplay: true, autoplaySpeed: 4500, afterChange: (i) => setCurrentIndex(i), arrows: false };
 
-  const settings = {
-    dots: true,
-    infinite: true,
-    speed: 500,
-    slidesToShow: 1,
-    slidesToScroll: 1,
-    autoplay: true,
-    autoplaySpeed: 3000,
-    afterChange: (index) => setCurrentIndex(index),
-  };
-
-  const newsData = data.newsAPIConnection.edges.map(edge => edge.node);
-
-  const { title, date, description, tag } = newsData[currentIndex] || {};
-
-  const renderImage = (news) => (
-    <div key={news.title} className="relative">
-      <img
-        src={news.image ? news.image.url : 'https://via.placeholder.com/600x400'}
-        alt={news.title}
-        style={{ width: '100%', height: 'auto', objectFit: 'cover' }}
-        loading="lazy" // Lazy loading
-      />
+  if (loading) return (
+    <div style={{ display: 'flex', justifyContent: 'center', padding: '48px' }}>
+      <div style={{ width: 24, height: 24, border: '2px solid #22c55e', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
 
-  const renderTags = (tags) => (
-    tags?.map((tag, index) => (
-      <span key={index} className="bg-[#087830] text-gray-100 text-sm rounded-full px-3 py-1">
-        {tag}
-      </span>
-    ))
-  );
+  if (!newsData.length) return <p style={{ color: '#5a6560', textAlign: 'center', padding: '32px', fontFamily: "'Outfit',sans-serif" }}>No news available yet.</p>;
+
+  const current = newsData[currentIndex];
 
   return (
-    <div className="flex flex-col md:flex-row items-start max-w-6xl mx-auto p-4">
-      {/* Slider */}
-      <div className="w-full md:w-2/5">
-        <Slider {...settings}>
-          {newsData.map(renderImage)}
-        </Slider>
-      </div>
+    <>
+      <style>{STYLES}</style>
+      <div className="news-root" style={{ maxWidth: '960px', margin: '0 auto' }}>
+        <div className="news-wrap" style={{ display: 'grid', gridTemplateColumns: '2fr 3fr' }}>
 
-      {/* Info Content */}
-      <div className="w-full md:w-3/5 md:ml-4 mt-4 md:mt-0 flex pt-12">
-        <div className="p-4 text-black">
-          <h3 className="text-3xl text-[#087830] font-bold">{title}</h3>
-          <p className="mt-1 text-md text-gray-600">{date || 'Date not available'}</p>
-          <div className="mt-2 flex flex-wrap justify-center space-x-2">
-            {renderTags([tag])}
+          {/* Image side */}
+          <div style={{ position: 'relative', minHeight: '280px' }} className="news-slider">
+            <Slider {...settings} style={{ height: '100%' }}>
+              {newsData.map((n) => (
+                <div key={n.id} style={{ height: '100%' }}>
+                  <img src={n.image_url || 'https://placehold.co/600x400/131615/22c55e?text=SOURCE'} alt={n.title}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', minHeight: '280px', maxHeight: '360px' }} loading="lazy" />
+                </div>
+              ))}
+            </Slider>
+            {/* Dots */}
+            <div style={{ position: 'absolute', bottom: 14, left: 14, display: 'flex', gap: 6, zIndex: 10 }}>
+              {newsData.map((_, i) => (
+                <button key={i} className={`news-dot ${i === currentIndex ? 'active' : ''}`}
+                  style={{ height: 6, width: i === currentIndex ? 20 : 6, border: 'none', padding: 0 }} />
+              ))}
+            </div>
           </div>
-          <p className="mt-4 text-justify">{description?.markdown || 'Description not available'}</p>
+
+          {/* Text side */}
+          <div style={{ padding: '36px 40px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+              {current.tag && (
+                <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#22c55e', background: '#22c55e22', padding: '3px 10px', borderRadius: 100 }}>
+                  {current.tag}
+                </span>
+              )}
+              <span style={{ fontSize: 12, color: '#5a6560' }}>
+                {current.date ? new Date(current.date).toLocaleDateString('en-PH', { year: 'numeric', month: 'short', day: 'numeric' }) : ''}
+              </span>
+            </div>
+
+            <h3 style={{ fontFamily: "'Syne',sans-serif", fontWeight: 700, fontSize: 'clamp(1.15rem, 2vw, 1.5rem)', color: '#f0f2f1', lineHeight: 1.2, marginBottom: 12 }}>
+              {current.title}
+            </h3>
+
+            <p style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 300, fontSize: 14, color: '#9aa39d', lineHeight: 1.75, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical' }}>
+              {current.description || 'No description available.'}
+            </p>
+
+            {/* Progress bar */}
+            <div style={{ marginTop: 28, height: 1, background: 'rgba(255,255,255,0.07)', borderRadius: 1, overflow: 'hidden' }}>
+              <div key={currentIndex} style={{ height: '100%', background: '#22c55e', animation: 'progress 4.5s linear forwards' }} />
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
-
-export default NewsCarousel;

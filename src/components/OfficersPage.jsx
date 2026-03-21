@@ -1,107 +1,128 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 import HeaderBgImage from '../assets/officer_header-bg.jpg';
-import officerData from '../data/officers.json';
-import officerStructure from '../assets/officer-structure.png'; // Adjust the path as needed
+import officerStructure from '../assets/officer-structure.png';
 
-
-
-// Function to dynamically import images
-const requireImage = (imageName) => {
-  if (!imageName) {
-    console.error("Image name is undefined or null");
-    return null;
+const S = `
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Outfit:wght@300;400;500;600&display=swap');
+  :root {
+    --bg:#0d0f0e; --bg-2:#131615; --bg-3:#191c1a; --bg-4:#1f2421;
+    --border:rgba(255,255,255,0.07); --border-md:rgba(255,255,255,0.11);
+    --accent:#22c55e; --accent-dim:#22c55e18;
+    --text:#f0f2f1; --text-2:#9aa39d; --text-3:#5a6560;
+    --font-head:'Syne',sans-serif; --font-body:'Outfit',sans-serif; --radius:14px;
   }
-
-  try {
-    return require(`../assets/officers-img/${imageName}`);
-  } catch (e) {
-    console.error(`Image not found: ${imageName}`);
-    return null;
+  .officers-root { font-family: var(--font-body); background: var(--bg); color: var(--text); }
+  .officer-card {
+    background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius);
+    overflow: hidden; transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
   }
-};
+  .officer-card:hover { transform: translateY(-4px); border-color: var(--border-md); box-shadow: 0 12px 40px rgba(0,0,0,0.4); }
+  .officer-card img { transition: transform 0.5s ease; }
+  .officer-card:hover img { transform: scale(1.05); }
+  .fade-in { animation: fadeUp 0.45s ease both; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+`;
 
-function OfficersPage() {
-  // Add image paths to the officer data
-  const categorizedOfficers = officerData.map(category => ({
-    ...category,
-    officers: category.officers.map(officer => ({
-      ...officer,
-      image: requireImage(officer.image)
-    }))
-  }));
+export default function OfficersPage() {
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [academicYear, setAcademicYear] = useState('');
+
+  useEffect(() => {
+    supabase.from('officers').select('*').eq('published', true).order('sort_order', { ascending: true })
+      .then(({ data, error }) => {
+        if (!error && data) {
+          const grouped = data.reduce((acc, o) => { if (!acc[o.category]) acc[o.category] = []; acc[o.category].push(o); return acc; }, {});
+          setCategories(Object.entries(grouped).map(([cat, officers]) => ({ category: cat, officers })));
+          if (data.length) setAcademicYear(data[0].academic_year || '2024–2025');
+        }
+        setLoading(false);
+      });
+  }, []);
 
   return (
     <>
-      {/* Header Section */}
-      <div className="bg-[#087830] text-white padding py-12">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-6xl font-bold">Meet the Officers</h1>
-            <p className='px-1'>A.Y. 2024 - 2025</p>
-          </div>
-          <div>
-            <p className="max-w-md text-xl italic text-end">
+      <style>{S}</style>
+      <div className="officers-root">
+
+        {/* Hero */}
+        <div style={{ position: 'relative', height: '420px', overflow: 'hidden', background: '#0a0c0b' }}>
+          <img src={HeaderBgImage} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(160deg, rgba(8,12,10,0.92) 0%, rgba(8,12,10,0.7) 50%, rgba(8,12,10,0.4) 100%)' }} />
+          <div style={{ position: 'absolute', inset: 0, backgroundImage: 'radial-gradient(rgba(34,197,94,0.1) 1px, transparent 1px)', backgroundSize: '32px 32px', opacity: 0.5 }} />
+
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '0 11vw 48px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+              <span style={{ width: 20, height: 1, background: '#22c55e', display: 'inline-block' }} />
+              <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#22c55e' }}>A.Y. {academicYear}</span>
+            </div>
+            <h1 style={{ fontFamily: "'Syne',sans-serif", fontWeight: 800, fontSize: 'clamp(2.5rem, 5vw, 4rem)', color: '#f0f2f1', lineHeight: 1.05, marginBottom: 12 }}>
+              Meet the Officers
+            </h1>
+            <p style={{ color: 'rgba(240,242,241,0.45)', fontWeight: 300, maxWidth: '400px' }}>
               A dedicated team working towards the advancement of ICT.
             </p>
           </div>
+          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 64, background: 'linear-gradient(to bottom, transparent, #0d0f0e)' }} />
         </div>
-      </div>
 
-      {/* Background Image Section */}
-      <div className="relative w-full" style={{ height: '400px' }}>
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{
-            backgroundImage: `url(${HeaderBgImage})`,
-            height: '100%',
-            width: '100%',
-          }}
-        >
-          <div
-            className="absolute inset-0"
-            style={{
-              backgroundColor: '#014018',
-              opacity: 0.6,
-            }}
-          ></div>
+        {/* Officers grid */}
+        <div style={{ padding: '80px 11vw' }}>
+          {loading ? (
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '80px 0' }}>
+              <div style={{ width: 28, height: 28, border: '2px solid #22c55e', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+              <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+            </div>
+          ) : categories.length === 0 ? (
+            <p style={{ textAlign: 'center', color: '#5a6560', fontStyle: 'italic' }}>No officers listed yet.</p>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 64 }}>
+              {categories.map((cat, i) => <CategorySection key={i} {...cat} delay={i * 60} />)}
+            </div>
+          )}
         </div>
-      </div>
 
-      {/* Officers Section */}
-      <div className="p-10 space-y-20 padding">
-        {categorizedOfficers.map((category, index) => (
-          <CategorySection key={index} title={category.category} officers={category.officers} />
-        ))}
-      </div>
-
-      <div className="bg-[#087830] p-4 padding">
-        <div className="max-w-3xl mx-auto text-white text-center py-6">
-          <h1 className='text-5xl font-bold mb-3'>Organizational Structure</h1>
-          <p>The SOURCE Student Council is comprised of nine (9) core committees (including their undersecretaries) and the representatives of each year-level.</p>
+        {/* Org chart */}
+        <div style={{ background: '#0a0c0b', borderTop: '1px solid rgba(255,255,255,0.07)', padding: '80px 11vw' }}>
+          <div style={{ textAlign: 'center', marginBottom: 40 }}>
+            <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 12 }}>
+              <span style={{ width: 20, height: 1, background: '#22c55e', display: 'inline-block' }} />
+              Structure
+              <span style={{ width: 20, height: 1, background: '#22c55e', display: 'inline-block' }} />
+            </span>
+            <h2 style={{ fontFamily: "'Syne',sans-serif", fontWeight: 700, fontSize: 'clamp(1.5rem, 3vw, 2.2rem)', color: '#f0f2f1', marginBottom: 12 }}>
+              Organizational Chart
+            </h2>
+            <p style={{ color: '#9aa39d', fontWeight: 300, maxWidth: '500px', margin: '0 auto', lineHeight: 1.7 }}>
+              Nine core committees plus year-level representatives make up the SOURCE Student Council.
+            </p>
+          </div>
+          <img src={officerStructure} alt="Org chart" style={{ width: '100%', maxWidth: 900, margin: '0 auto', display: 'block', borderRadius: 14, border: '1px solid rgba(255,255,255,0.07)' }} />
         </div>
-        <img src={officerStructure} alt="Officer Structure" className="w-full h-auto px-16 mb-6" />
       </div>
     </>
   );
 }
 
-function CategorySection({ title, officers }) {
+function CategorySection({ category, officers, delay }) {
   return (
-    <div className="text-left">
-      <h3 className="text-3xl font-bold mb-4">{title}</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {officers.map((officer, index) => (
-          <div key={index} className="card bg-base-100 shadow-xl transform hover:-translate-y-2 transition-transform duration-300">
-            <div className="card-body flex flex-col items-center">
-              <img
-                src={officer.image}
-                alt={officer.name}
-                className="w-48 object-cover"
-              />
-              <h4 className="card-title text-xl font-semibold">{officer.name}</h4>
-              <div className='bg-[#087830] text-white text-sm rounded-md px-4 py-1'>
-                <p>{officer.position}</p>
-              </div>
+    <div className="fade-in" style={{ animationDelay: `${delay}ms` }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 28 }}>
+        <div style={{ width: 3, height: 20, background: '#22c55e', borderRadius: 2, flexShrink: 0 }} />
+        <h3 style={{ fontFamily: "'Syne',sans-serif", fontWeight: 700, fontSize: '1.2rem', color: '#f0f2f1' }}>{category}</h3>
+        <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.07)' }} />
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 16 }}>
+        {officers.map((o) => (
+          <div key={o.id} className="officer-card">
+            <div style={{ aspectRatio: '1', overflow: 'hidden', background: '#191c1a' }}>
+              <img src={o.image_url || 'https://placehold.co/300x300/191c1a/22c55e?text=Photo'} alt={o.name}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />
+            </div>
+            <div style={{ padding: '14px 16px' }}>
+              <p style={{ fontWeight: 600, color: '#f0f2f1', fontSize: '0.85rem', lineHeight: 1.3 }}>{o.name}</p>
+              <p style={{ fontSize: 11, color: '#22c55e', fontWeight: 500, marginTop: 6, letterSpacing: '0.04em' }}>{o.position}</p>
             </div>
           </div>
         ))}
@@ -109,5 +130,3 @@ function CategorySection({ title, officers }) {
     </div>
   );
 }
-
-export default OfficersPage;

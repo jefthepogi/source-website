@@ -11,6 +11,7 @@ import MerchPage from './components/MerchPage';
 import CodeSnippetsPage from './components/DebugCode';
 import FlexibleRedirect from './components/FlexibleRedirect';
 import MentorsDay from './components/MentorsDay';
+import AdminApp from './components/AdminPanel';
 
 function HomePage() {
   return (
@@ -21,18 +22,20 @@ function HomePage() {
   );
 }
 
-// 1. Create a wrapper component to handle the logic
 function AppContent() {
   const location = useLocation();
-  
-  // Check if current page is Mentors Day
   const isMentorsDay = location.pathname === '/mentorsday';
+  const isAdmin = location.pathname.startsWith('/admin');
+
+  // Admin panel has its own full-screen layout
+  if (isAdmin) {
+    return <AdminApp />;
+  }
 
   return (
     <div className="App" data-theme="light">
-      {/* 2. Hide Navbar and Footer if isMentorsDay is true */}
       {!isMentorsDay && <Navbar />}
-      
+
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/officers" element={<OfficersPage />} />
@@ -41,8 +44,6 @@ function AppContent() {
         <Route path="/merch" element={<MerchPage />} />
         <Route path="/letsdebug" element={<CodeSnippetsPage />} />
         <Route path="/mentorsday" element={<MentorsDay />} />
-        
-        {/* Catch-all route for dynamic redirects */}
         <Route path="/*" element={<FlexibleRedirect />} />
       </Routes>
 
@@ -51,11 +52,15 @@ function AppContent() {
   );
 }
 
-// 3. Keep the Router at the top level
 function App() {
   return (
     <Router>
-      <AppContent />
+      <Routes>
+        {/* Admin panel - full screen, no Navbar/Footer */}
+        <Route path="/admin/*" element={<AdminApp />} />
+        {/* Rest of the site */}
+        <Route path="/*" element={<AppContent />} />
+      </Routes>
     </Router>
   );
 }
