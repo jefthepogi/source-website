@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { jsPDF } from 'jspdf';
 import { ShoppingCart, X, ArrowLeft, ZoomIn } from 'lucide-react';
 import { FaMoneyBill, FaMobileAlt } from 'react-icons/fa';
 import { supabase } from '../lib/supabase';
@@ -70,7 +71,10 @@ const S = `
 
 // Items that have sizes (shirt-type items)
 const SIZED_CATEGORIES = ['Jersey', 'Shirt', 'Hoodie'];
+const NO_SIZE_CATEGORIES = ['Lanyard', 'Cap', 'Sticker', 'Other'];
 const hasSizes = (item) => {
+  // Never ask for size on these categories regardless of sizes array
+  if (NO_SIZE_CATEGORIES.includes(item.category)) return false;
   if (Array.isArray(item.sizes) && item.sizes.length) return true;
   return SIZED_CATEGORIES.includes(item.category);
 };
@@ -137,7 +141,7 @@ function Step1({ item, formData, setFormData, onNext }) {
         <input className="ds-input" name="email" type="email" placeholder="LSU Email" value={formData.email} onChange={handleChange} />
       </div>
 
-      <select className="ds-input" name="sex" value={formData.sex} onChange={handleChange} style={{ marginBottom: needsSize ? 20 : 0 }}>
+      <select className="ds-input" name="sex" value={formData.sex} onChange={handleChange} style={{ marginBottom: 20 }}>
         <option value="">Select Sex</option>
         <option>Male</option>
         <option>Female</option>
@@ -357,18 +361,18 @@ function ItemInspectModal({ item, onClose, onOrder }) {
 
   return (
     <div
-      style={{ position: 'fixed', inset: 0, zIndex: 60, background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(8px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}
+      style={{ position: 'fixed', inset: 0, zIndex: 60, background: '#141714', backgroundImage: 'linear-gradient(45deg, #1e221e 25%, transparent 25%), linear-gradient(-45deg, #1e221e 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #1e221e 75%), linear-gradient(-45deg, transparent 75%, #1e221e 75%)', backgroundSize: '20px 20px', backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       {/* Top bar */}
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', background: 'linear-gradient(to bottom, rgba(0,0,0,0.7), transparent)', zIndex: 10 }}>
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', background: 'linear-gradient(to bottom, rgba(14,18,14,0.95) 0%, transparent 100%)', zIndex: 10 }}>
         <div>
           <p style={{ fontFamily: "'Syne',sans-serif", fontWeight: 700, color: '#f0f2f1', fontSize: '0.95rem', margin: 0 }}>{item.name}</p>
           {item.category && <p style={{ fontSize: 11, color: '#5a6560', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: 2 }}>{item.category}</p>}
         </div>
         <button onClick={onClose}
           style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#f0f2f1', transition: 'background 0.2s' }}
-          onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
+          onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.18)'}
           onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
         >
           <X size={18} />
@@ -405,7 +409,7 @@ function ItemInspectModal({ item, onClose, onOrder }) {
       </div>
 
       {/* Controls bar */}
-      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '20px 24px', background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '20px 24px', background: 'linear-gradient(to top, rgba(14,18,14,0.97) 0%, transparent 100%)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
 
         {/* Zoom controls */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -481,6 +485,157 @@ export default function MerchPage() {
 
   const closeModal = () => { setShowModal(false); setSelectedItem(null); };
 
+
+  const generateReceipt = (orderData, item) => {
+    const doc = new jsPDF({ unit: 'mm', format: 'a5' });
+    const W = doc.internal.pageSize.getWidth();
+    const H = doc.internal.pageSize.getHeight();
+    const green  = [8, 120, 48];   // #087830 — brand green
+    const dark   = [30, 30, 30];   // near-black text
+    const mid    = [100, 100, 100]; // gray labels
+    const light  = [240, 240, 240]; // divider lines
+    const pad    = 16;
+
+    // White background (default, just be explicit)
+    doc.setFillColor(255, 255, 255);
+    doc.rect(0, 0, W, H, 'F');
+
+    // Green header band
+    doc.setFillColor(...green);
+    doc.rect(0, 0, W, 28, 'F');
+
+    // SOURCE wordmark in header
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(20);
+    doc.setTextColor(255, 255, 255);
+    doc.text('SOURCE', pad, 17);
+
+    // Subtitle in header
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(200, 230, 210);
+    doc.text('La Salle University – Ozamiz  ·  CCSEA', pad, 24);
+
+    // "PRE-ORDER RECEIPT" label, right-aligned in header
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(255, 255, 255);
+    doc.text('PRE-ORDER RECEIPT', W - pad, 17, { align: 'right' });
+
+    // Date, right-aligned
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.setTextColor(200, 230, 210);
+    doc.text(
+      new Date().toLocaleDateString('en-PH', { year: 'numeric', month: 'short', day: 'numeric' }),
+      W - pad, 24, { align: 'right' }
+    );
+
+    let y = 38;
+
+    // Helper: section heading
+    const addSection = (title) => {
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7);
+      doc.setTextColor(...green);
+      doc.text(title.toUpperCase(), pad, y);
+      y += 1.5;
+      doc.setDrawColor(...green);
+      doc.setLineWidth(0.4);
+      doc.line(pad, y, W - pad, y);
+      y += 5;
+    };
+
+    // Helper: label / value row
+    const addRow = (label, value) => {
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8.5);
+      doc.setTextColor(...mid);
+      doc.text(label, pad, y);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...dark);
+      doc.text(String(value || '—'), W - pad, y, { align: 'right' });
+      y += 6;
+    };
+
+    // Helper: thin divider
+    const addDivider = () => {
+      y += 1;
+      doc.setDrawColor(...light);
+      doc.setLineWidth(0.2);
+      doc.line(pad, y, W - pad, y);
+      y += 5;
+    };
+
+    // ── Item section ──
+    addSection('Item');
+    addRow('Item', item.name);
+    if (item.category) addRow('Category', item.category);
+    addRow('Price', 'PHP ' + Number(item.price).toFixed(2));
+    if (orderData.size) addRow('Size', orderData.size);
+
+    addDivider();
+
+    // ── Customer section ──
+    addSection('Customer');
+    const fullName = [
+      orderData.firstName,
+      orderData.middleInitial ? orderData.middleInitial + '.' : '',
+      orderData.lastName,
+    ].filter(Boolean).join(' ');
+    addRow('Name', fullName);
+    if (orderData.sex) addRow('Sex', orderData.sex);
+    addRow('Email', orderData.email);
+    addRow('Phone', orderData.phoneNumber);
+
+    addDivider();
+
+    // ── Payment section ──
+    addSection('Payment');
+    addRow('Method', orderData.paymentMethod);
+    if (orderData.gcashReference) addRow('GCash Ref No.', orderData.gcashReference);
+
+    y += 4;
+
+    // ── Confirmed badge ──
+    doc.setFillColor(236, 253, 245); // very light green
+    doc.setDrawColor(...green);
+    doc.setLineWidth(0.4);
+    doc.roundedRect(pad, y, W - pad * 2, 14, 2, 2, 'FD');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9.5);
+    doc.setTextColor(...green);
+    doc.text('PRE-ORDER CONFIRMED', W / 2, y + 8.5, { align: 'center', baseline: 'middle' });
+    y += 20;
+
+    // ── Note ──
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(...mid);
+    const note = orderData.paymentMethod === 'Cash'
+      ? 'Please coordinate with a SOURCE officer to complete your cash payment.'
+      : 'Your GCash reference has been recorded. Await confirmation from SOURCE.';
+    doc.text(note, pad, y, { maxWidth: W - pad * 2 });
+
+    // ── Footer band ──
+    doc.setFillColor(245, 248, 245);
+    doc.rect(0, H - 14, W, 14, 'F');
+    doc.setDrawColor(...light);
+    doc.setLineWidth(0.3);
+    doc.line(0, H - 14, W, H - 14);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.setTextColor(...mid);
+    doc.text(
+      'SOURCE  ·  source@lsu.edu.ph  ·  © ' + new Date().getFullYear(),
+      W / 2, H - 6, { align: 'center' }
+    );
+
+    const safeName = item.name.replace(/[^a-zA-Z0-9]/g, '_');
+    doc.save('SOURCE_Receipt_' + safeName + '_' + Date.now() + '.pdf');
+  };
+
   const handleSubmit = async () => {
     if (submitting) return;
     setSubmitting(true);
@@ -499,7 +654,8 @@ export default function MerchPage() {
         item_id: selectedItem.id,
       }]);
       if (error) throw error;
-      toast.success('Pre-order submitted! We\'ll be in touch soon.', {
+      generateReceipt(formData, selectedItem);
+      toast.success('Pre-order confirmed! Your receipt is downloading.', {
         style: { background: '#131615', color: '#f0f2f1', border: '1px solid rgba(34,197,94,0.3)', fontFamily: "'Outfit',sans-serif" },
         duration: 4000,
       });
