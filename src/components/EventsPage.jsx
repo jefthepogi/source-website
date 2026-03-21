@@ -19,12 +19,28 @@ export default function EventsPage() {
   const [activeStatus, setActiveStatus] = useState('all');
 
   useEffect(() => {
-    supabase.from('events').select('*').eq('published', true).order('event_date', { ascending: false })
-      .then(({ data, error }) => { if (!error && data) { setEvents(data); setFiltered(data); } setLoading(false); });
+    supabase.from('events').select('*').eq('published', true)
+      .then(({ data, error }) => {
+        if (!error && data) {
+          // Sort: ongoing first, then upcoming (soonest first), then past (most recent first)
+          const order = { ongoing: 0, upcoming: 1, past: 2 };
+          const sorted = [...data].sort((a, b) => {
+            const statusDiff = (order[a.status] ?? 1) - (order[b.status] ?? 1);
+            if (statusDiff !== 0) return statusDiff;
+            const da = a.event_date ? new Date(a.event_date) : new Date(0);
+            const db = b.event_date ? new Date(b.event_date) : new Date(0);
+            // Upcoming: soonest first. Past: most recent first.
+            return a.status === 'past' ? db - da : da - db;
+          });
+          setEvents(sorted);
+          setFiltered(sorted);
+        }
+        setLoading(false);
+      });
   }, []);
 
   useEffect(() => {
-    let r = events;
+    let r = events; // already sorted from fetch
     if (activeFilter !== 'All') r = r.filter((e) => e.category === activeFilter);
     if (activeStatus !== 'all') r = r.filter((e) => e.status === activeStatus);
     setFiltered(r);

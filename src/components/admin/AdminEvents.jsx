@@ -46,8 +46,17 @@ export default function AdminEvents() {
 
   const fetchData = async () => {
     setLoading(true);
-    const { data } = await supabase.from('events').select('*').order('event_date', { ascending: false });
-    setRows(data || []);
+    const { data } = await supabase.from('events').select('*');
+    // Sort: ongoing first, then upcoming (soonest first), then past (most recent first)
+    const order = { ongoing: 0, upcoming: 1, past: 2 };
+    const sorted = (data || []).sort((a, b) => {
+      const statusDiff = (order[a.status] ?? 1) - (order[b.status] ?? 1);
+      if (statusDiff !== 0) return statusDiff;
+      const da = a.event_date ? new Date(a.event_date) : new Date(0);
+      const db = b.event_date ? new Date(b.event_date) : new Date(0);
+      return a.status === 'past' ? db - da : da - db;
+    });
+    setRows(sorted);
     setLoading(false);
   };
 
