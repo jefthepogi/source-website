@@ -637,7 +637,7 @@ export default function MerchPage() {
     addSection('Customer');
     const fullName = [
       orderData.firstName,
-      orderData.middleInitial ? orderData.middleInitial + '.' : '',
+      orderData.middleInitial ? orderData.middleInitial : '',
       orderData.lastName,
     ].filter(Boolean).join(' ');
     addRow('Name', fullName);
