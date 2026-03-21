@@ -83,14 +83,6 @@ export default function ContactsPage() {
                   </a>
                 ))}
               </div>
-
-              <div style={{ padding:'16px 20px', background:'rgba(255,255,255,0.025)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:14 }}>
-                <p style={{ fontSize:11, fontWeight:600, letterSpacing:'0.12em', textTransform:'uppercase', color:'#5a6560', marginBottom:8 }}>Office Hours</p>
-                <p style={{ color:'#9aa39d', fontSize:13, lineHeight:1.75, fontWeight:300 }}>
-                  Monday – Friday, during school hours.<br />
-                  CCSEA dept., La Salle University – Ozamiz.
-                </p>
-              </div>
             </div>
 
             {/* Right */}
