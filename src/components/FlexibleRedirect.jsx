@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase';
 
 function FlexibleRedirect() {
   const location = useLocation();
-  const slug = location.pathname.replace(/^\//, '');
+  const slug = location.pathname.replace(/^\//, '').toLowerCase();
   const [status, setStatus] = useState('loading');
 
   useEffect(() => {

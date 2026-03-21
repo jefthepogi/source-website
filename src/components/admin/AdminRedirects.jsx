@@ -54,8 +54,8 @@ export default function AdminRedirects() {
       fields={FIELDS}
       rows={rows}
       loading={loading}
-      onAdd={async (data) => { await supabase.from('redirect_links').insert([{ ...data, active: data.active ?? true }]); fetchData(); }}
-      onEdit={async (id, data) => { await supabase.from('redirect_links').update(data).eq('id', id); fetchData(); }}
+      onAdd={async (data) => { await supabase.from('redirect_links').insert([{ ...data, slug: data.slug?.toLowerCase().trim(), active: data.active ?? true }]); fetchData(); }}
+      onEdit={async (id, data) => { await supabase.from('redirect_links').update({ ...data, slug: data.slug?.toLowerCase().trim() }).eq('id', id); fetchData(); }}
       onDelete={async (id) => { await supabase.from('redirect_links').delete().eq('id', id); fetchData(); }}
       defaultValues={{ active: true }}
     />
