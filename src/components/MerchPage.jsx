@@ -601,11 +601,12 @@ export default function MerchPage() {
     doc.setFillColor(236, 253, 245); // very light green
     doc.setDrawColor(...green);
     doc.setLineWidth(0.4);
-    doc.roundedRect(pad, y, W - pad * 2, 14, 2, 2, 'FD');
+    const badgeH = 16;
+    doc.roundedRect(pad, y, W - pad * 2, badgeH, 2, 2, 'FD');
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(9.5);
     doc.setTextColor(...green);
-    doc.text('PRE-ORDER CONFIRMED', W / 2, y + 8.5, { align: 'center', baseline: 'middle' });
+    doc.text('PRE-ORDER CONFIRMED', W / 2, y + (badgeH / 2) + 1, { align: 'center' });
     y += 20;
 
     // ── Note ──
