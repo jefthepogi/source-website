@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import '../../admin.css';
 import { supabase } from '../../lib/supabase';
 import { Mail, MailOpen, Trash2, RefreshCw } from 'lucide-react';
-import { DeleteConfirm, DS } from './CRUDTable';
+import { DeleteConfirm } from './CRUDTable';
 
 export default function AdminContacts() {
   const [submissions, setSubmissions] = useState([]);

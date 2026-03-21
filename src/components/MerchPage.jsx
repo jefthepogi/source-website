@@ -84,9 +84,9 @@ const PAYMENT_OPTIONS = [
   { value: 'GCash', label: 'GCash', desc: 'Scan QR, send reference number', icon: <FaMobileAlt size={16} /> },
 ];
 const OFFICERS = [
-  { name: 'Romeo S. Jagonia Jr.' },
   { name: 'Maricar C. Roda' },
   { name: 'Russel Ashley R. Dolera' },
+  { name: 'Baby Jane A. Sabuclalao' },
 ];
 
 // ── Step 1: Personal info + optional size ─────────────────────────────────
@@ -239,7 +239,7 @@ function Step3({ formData, setFormData, onSubmit, onBack, submitting }) {
       <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#5a6560', marginBottom: 14 }}>GCash Payment</p>
       <img src={QRCodeImg} alt="GCash QR" style={{ width: 160, height: 160, display: 'block', margin: '0 auto 10px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.07)' }} />
       <p style={{ textAlign: 'center', fontSize: 12, color: '#9aa39d', marginBottom: 16 }}>
-        GCash: <strong style={{ color: '#f0f2f1' }}>09157924836</strong>
+        GCash: <strong style={{ color: '#f0f2f1' }}>09758079203</strong>
       </p>
       <input className="ds-input" name="gcashReference" placeholder="Reference Number" value={formData.gcashReference} onChange={handleChange} style={{ marginBottom: 16 }} />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>

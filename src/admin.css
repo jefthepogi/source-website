@@ -163,3 +163,20 @@
   .admin-sidebar { display: flex !important; }
   .admin-bottom-nav { display: none !important; }
 }
+
+/* ── Paid toggle (AdminMerch) ── */
+.paid-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 100px;
+  padding: 4px 10px;
+  transition: all 0.2s;
+}
+.paid-toggle:disabled { opacity: 0.5; cursor: not-allowed; }

@@ -1,44 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import '../../admin.css';
 import { supabase } from '../../lib/supabase';
-import { DS } from './CRUDTable';
 import { UserPlus, Trash2, Shield, ShieldOff, RefreshCw, X, Check, Key, AlertCircle } from 'lucide-react';
-
-const LOCAL_S = `
-  .users-root { font-family: 'Outfit', sans-serif; }
-  .user-row { border-bottom: 1px solid rgba(255,255,255,0.06); }
-  .user-row:last-child { border-bottom: none; }
-  .perm-chip {
-    display: inline-flex; align-items: center; gap: 4px;
-    padding: 3px 10px; border-radius: 100px;
-    font-size: 11px; font-weight: 600; cursor: pointer;
-    border: 1px solid; transition: all 0.15s; user-select: none;
-  }
-  .perm-chip.on  { background:rgba(34,197,94,0.12); border-color:rgba(34,197,94,0.3); color:#22c55e; }
-  .perm-chip.off { background:rgba(255,255,255,0.04); border-color:rgba(255,255,255,0.1); color:#5a6560; }
-  .invite-input {
-    width:100%; padding:10px 14px;
-    background:#191c1a; border:1px solid rgba(255,255,255,0.11);
-    border-radius:8px; color:#f0f2f1;
-    font-family:'Outfit',sans-serif; font-size:13px;
-    outline:none; transition:border-color 0.2s, box-shadow 0.2s;
-  }
-  .invite-input::placeholder { color:#5a6560; }
-  .invite-input:focus { border-color:#22c55e; box-shadow:0 0 0 3px rgba(34,197,94,0.08); }
-  .info-box {
-    background:rgba(34,197,94,0.06); border:1px solid rgba(34,197,94,0.15);
-    border-radius:10px; padding:12px 14px;
-    font-size:12px; color:#9aa39d; line-height:1.65;
-  }
-  .warn-box {
-    background:rgba(251,191,36,0.06); border:1px solid rgba(251,191,36,0.2);
-    border-radius:10px; padding:12px 14px;
-    font-size:12px; color:#fbbf24; line-height:1.65;
-  }
-  @keyframes spin { to { transform:rotate(360deg); } }
-  @keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
-  .fade-in { animation: fadeUp 0.3s ease both; }
-`;
 
 const ALL_SECTIONS = [
   { id: 'news',      label: 'News' },
@@ -333,7 +296,7 @@ export default function AdminUsers() {
                   <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
                     {Object.keys(ROLE_PRESETS).map((r) => (
                       <button key={r} onClick={() => applyPreset(r)}
-                        style={{ padding:'5px 12px', borderRadius:100, fontSize:12, fontWeight:500, cursor:'pointer', border:'none', fontFamily:"'Outfit',sans-serif", textTransform:'capitalize', transition:'all 0.15s',
+                        style={{ padding:'5px 12px', borderRadius:100, fontSize:12, cursor:'pointer', border:'none', fontFamily:"'Outfit',sans-serif", textTransform:'capitalize', transition:'all 0.15s',
                           background: inviteRole === r ? '#22c55e' : 'rgba(255,255,255,0.06)',
                           color: inviteRole === r ? '#000' : '#9aa39d',
                           fontWeight: inviteRole === r ? 600 : 400,

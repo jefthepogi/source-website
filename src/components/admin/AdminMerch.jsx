@@ -1,30 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import '../../admin.css';
 import { supabase } from '../../lib/supabase';
-import { CRUDTable, DS } from './CRUDTable';
+import { CRUDTable } from './CRUDTable';
 import { ShoppingBag, Download, X, Eye, Users, CheckCircle, Circle } from 'lucide-react';
-
-const LOCAL_S = `
-  .merch-admin { font-family: 'Outfit', sans-serif; }
-  .order-row { border-bottom: 1px solid rgba(255,255,255,0.06); transition: background 0.15s; cursor: pointer; }
-  .order-row:hover { background: rgba(255,255,255,0.025); }
-  .order-row:last-child { border-bottom: none; }
-  .dl-btn {
-    display: inline-flex; align-items: center; gap: 7px;
-    background: #22c55e; color: #000; border: none; border-radius: 8px;
-    padding: 9px 18px; font-size: 13px; font-weight: 600;
-    font-family: 'Outfit', sans-serif; cursor: pointer;
-    transition: background 0.2s, transform 0.15s;
-  }
-  .dl-btn:hover { background: #28d468; transform: translateY(-1px); }
-  .paid-toggle {
-    display: inline-flex; align-items: center; gap: 5px;
-    border: none; background: transparent; cursor: pointer;
-    font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 600;
-    border-radius: 100px; padding: 4px 10px;
-    transition: all 0.2s;
-  }
-`;
 
 const MERCH_FIELDS = [
   { name: 'name', label: 'Item Name', type: 'text', required: true },
@@ -138,7 +116,7 @@ export default function AdminMerch() {
             { id: 'orders', label: 'Pre-Orders', icon: <Users size={13} />, badge: unpaidCount > 0 ? unpaidCount : null },
           ].map(({ id, label, icon, badge }) => (
             <button key={id} onClick={() => setTab(id)}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '6px 16px', borderRadius: 100, fontSize: 13, fontWeight: 500, cursor: 'pointer', border: 'none', fontFamily: "'Outfit',sans-serif", transition: 'all 0.15s',
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '6px 16px', borderRadius: 100, fontSize: 13, cursor: 'pointer', border: 'none', fontFamily: "'Outfit',sans-serif", transition: 'all 0.15s',
                 background: tab === id ? '#22c55e' : 'rgba(255,255,255,0.06)',
                 color: tab === id ? '#000' : '#9aa39d',
                 fontWeight: tab === id ? 600 : 500,
