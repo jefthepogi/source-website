@@ -71,7 +71,10 @@ const S = `
 
 // Items that have sizes (shirt-type items)
 const SIZED_CATEGORIES = ['Jersey', 'Shirt', 'Hoodie'];
+const BACK_TEXT_CATEGORIES = ['Jersey', 'Shirt'];
 const NO_SIZE_CATEGORIES = ['Lanyard', 'Cap', 'Sticker', 'Other'];
+const hasBackText = (item) => BACK_TEXT_CATEGORIES.includes(item.category);
+
 const hasSizes = (item) => {
   // Never ask for size on these categories regardless of sizes array
   if (NO_SIZE_CATEGORIES.includes(item.category)) return false;
@@ -107,7 +110,7 @@ function Step1({ item, formData, setFormData, onNext }) {
     if (!formData.firstName.trim()) errs.push('First name is required');
     if (!formData.lastName.trim()) errs.push('Last name is required');
     if (!formData.sex) errs.push('Sex is required');
-    if (!formData.phoneNumber.match(/^[0-9]{10,15}$/)) errs.push('Valid phone number required');
+    if (!formData.phoneNumber.replace(/[\s\-()]/g, '').match(/^[0-9]{10,11}$/)) errs.push('Phone number must be 10–11 digits');
     if (!formData.email.match(/^[^\s@]+@lsu\.edu\.ph$/)) errs.push('Valid LSU email required');
     if (needsSize && !formData.size) errs.push('Please select a size');
     if (errs.length) { errs.forEach((e) => toast.error(e, { duration: 3000, style: { background: '#191c1a', color: '#f0f2f1', border: '1px solid rgba(255,255,255,0.1)', fontFamily: "'Outfit',sans-serif" } })); return false; }
@@ -137,7 +140,13 @@ function Step1({ item, formData, setFormData, onNext }) {
       <input className="ds-input" name="lastName" placeholder="Last Name" value={formData.lastName} onChange={handleChange} style={{ marginBottom: 8 }} />
 
       <div className="modal-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
-        <input className="ds-input" name="phoneNumber" placeholder="Phone Number" value={formData.phoneNumber} onChange={handleChange} />
+        <input className="ds-input" name="phoneNumber" placeholder="09XXXXXXXXX" value={formData.phoneNumber}
+          inputMode="numeric"
+          maxLength={11}
+          onChange={(e) => {
+            const digits = e.target.value.replace(/[^0-9]/g, '').slice(0, 11);
+            setFormData((p) => ({ ...p, phoneNumber: digits }));
+          }} />
         <input className="ds-input" name="email" type="email" placeholder="LSU Email" value={formData.email} onChange={handleChange} />
       </div>
 
@@ -172,6 +181,27 @@ function Step1({ item, formData, setFormData, onNext }) {
             </button>
           </p>
         </>
+      )}
+
+      {/* Back text — only for shirts/jerseys */}
+      {hasBackText(item) && (
+        <div style={{ marginBottom: 20 }}>
+          <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#5a6560', marginBottom: 6 }}>Back Text</p>
+          <input
+            className="ds-input"
+            name="backText"
+            placeholder="Name to print on the back (optional)"
+            value={formData.backText}
+            onChange={(e) => setFormData((p) => ({ ...p, backText: e.target.value }))}
+            maxLength={20}
+          />
+          <p style={{ fontSize: 11, color: '#5a6560', marginTop: 5 }}>
+            This will be printed on the back of your {item.category?.toLowerCase()}. Leave blank if you want your last name to be printed instead.
+            <span style={{ float: 'right', color: formData.backText.length >= 18 ? '#fbbf24' : '#5a6560' }}>
+              {formData.backText.length}/20
+            </span>
+          </p>
+        </div>
       )}
 
       <button type="button" className="submit-btn" onClick={() => validate() && onNext()}>
@@ -468,7 +498,7 @@ export default function MerchPage() {
   const [formData, setFormData] = useState({
     firstName: '', middleInitial: '', lastName: '',
     sex: '', phoneNumber: '', email: '',
-    size: '', paymentMethod: '', gcashReference: '',
+    size: '', backText: '', paymentMethod: '', gcashReference: '',
   });
 
   useEffect(() => {
@@ -480,7 +510,7 @@ export default function MerchPage() {
     setSelectedItem(item);
     setShowModal(true);
     setFormStep(1);
-    setFormData({ firstName: '', middleInitial: '', lastName: '', sex: '', phoneNumber: '', email: '', size: '', paymentMethod: '', gcashReference: '' });
+    setFormData({ firstName: '', middleInitial: '', lastName: '', sex: '', phoneNumber: '', email: '', size: '', backText: '', paymentMethod: '', gcashReference: '' });
   };
 
   const closeModal = () => { setShowModal(false); setSelectedItem(null); };
@@ -573,6 +603,8 @@ export default function MerchPage() {
     if (item.category) addRow('Category', item.category);
     addRow('Price', 'PHP ' + Number(item.price).toFixed(2));
     if (orderData.size) addRow('Size', orderData.size);
+    const backTextValue = orderData.backText?.trim() || orderData.lastName?.trim();
+    if (backTextValue) addRow('Back Text', backTextValue);
 
     addDivider();
 
@@ -653,6 +685,7 @@ export default function MerchPage() {
         gcash_reference: formData.gcashReference.trim() || null,
         item_name: selectedItem.name,
         item_id: selectedItem.id,
+        back_text: formData.backText.trim() || formData.lastName.trim() || null,
       }]);
       if (error) throw error;
       generateReceipt(formData, selectedItem);

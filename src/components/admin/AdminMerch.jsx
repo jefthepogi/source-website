@@ -168,7 +168,7 @@ export default function AdminMerch() {
   const exportCSV = () => {
     const filtered = getFiltered();
     const csvRows = [
-      ['Full Name', 'Email', 'Phone', 'Sex', 'Item', 'Size', 'Payment', 'GCash Ref', 'Paid', 'Submitted'],
+      ['Full Name', 'Email', 'Phone', 'Sex', 'Item', 'Size', 'Back Text', 'Payment', 'GCash Ref', 'Paid', 'Submitted'],
       ...filtered.map((o) => [
         `"${[o.first_name, o.middle_initial ? o.middle_initial + '.' : '', o.last_name].filter(Boolean).join(' ')}"`,
         `"${o.email}"`, `"${o.phone_number}"`, `"${o.sex || ''}"`,
@@ -393,6 +393,7 @@ export default function AdminMerch() {
                 ['Sex',       selectedOrder.sex || '—'],
                 ['Item',      selectedOrder.item_name],
                 ['Size',      selectedOrder.size || '—'],
+                ['Back Text', selectedOrder.back_text || '—'],
                 ['Payment',   selectedOrder.payment_method],
                 ['GCash Ref', selectedOrder.gcash_reference || '—'],
                 ['Status',    selectedOrder.is_paid ? 'Paid' : 'Unpaid'],

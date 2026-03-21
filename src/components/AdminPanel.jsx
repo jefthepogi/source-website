@@ -253,13 +253,21 @@ export default function AdminApp() {
   // Auth listener
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, s) => setSession(s));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => {
+      // Ignore token refresh events — they don't change the session meaningfully
+      // and would cause a loading flash every time the tab is focused.
+      if (event === 'TOKEN_REFRESHED') return;
+      setSession(s);
+    });
     return () => subscription.unsubscribe();
   }, []);
 
-  // Fetch the admin_users record for the logged-in user to get their permissions
+  // Fetch the admin_users record once when the user logs in.
+  // We key on user ID so token refreshes don't retrigger this.
   useEffect(() => {
     if (!session?.user) { setAdminRecord(null); setLoadingRole(false); return; }
+    // Already have a record for this exact user — skip refetch
+    if (adminRecord !== null) { setLoadingRole(false); return; }
     setLoadingRole(true);
     supabase
       .from('admin_users')
@@ -270,7 +278,7 @@ export default function AdminApp() {
         setAdminRecord(data);
         setLoadingRole(false);
       });
-  }, [session]);
+  }, [session?.user?.id]); // only re-run when the actual user changes, not on token refresh
 
   const handleLogout = () => supabase.auth.signOut();
 
