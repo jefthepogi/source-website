@@ -90,11 +90,7 @@ const PAYMENT_OPTIONS = [
   { value: 'Cash', label: 'Cash on Hand', desc: 'Pay directly to an officer', icon: <FaMoneyBill size={16} /> },
   { value: 'GCash', label: 'GCash', desc: 'Scan QR, send reference number', icon: <FaMobileAlt size={16} /> },
 ];
-const OFFICERS = [
-  { name: 'Maricar C. Roda' },
-  { name: 'Russel Ashley R. Dolera' },
-  { name: 'Baby Jane A. Sabuclalao' },
-];
+const OFFICER_NAMES = ['Maricar C. Roda', 'Russel Ashley R. Dolera', 'Baby Jane A. Sabuclalao'];
 
 // ── Step 1: Personal info + optional size ─────────────────────────────────
 function Step1({ item, formData, setFormData, onNext }) {
@@ -241,6 +237,24 @@ function Step3({ formData, setFormData, onSubmit, onBack, submitting }) {
     setFormData((p) => ({ ...p, [name]: value }));
   }, [setFormData]);
 
+  const [officers, setOfficers] = React.useState([]);
+  React.useEffect(() => {
+    supabase
+      .from('officers')
+      .select('name, image_url, position')
+      .eq('published', true)
+      .in('name', OFFICER_NAMES)
+      .then(({ data }) => {
+        if (data && data.length > 0) {
+          // Keep the order from OFFICER_NAMES
+          const sorted = OFFICER_NAMES.map((n) => data.find((o) => o.name === n) || { name: n, image_url: null, position: null });
+          setOfficers(sorted);
+        } else {
+          setOfficers(OFFICER_NAMES.map((n) => ({ name: n, image_url: null, position: null })));
+        }
+      });
+  }, []);
+
   if (formData.paymentMethod === 'Cash') {
     return (
       <div>
@@ -249,12 +263,23 @@ function Step3({ formData, setFormData, onSubmit, onBack, submitting }) {
           After submitting, contact one of the officers below to arrange your payment.
         </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 24 }}>
-          {OFFICERS.map((o) => (
+          {officers.map((o) => (
             <div key={o.name} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', background: 'rgba(255,255,255,0.03)', borderRadius: 10, border: '1px solid rgba(255,255,255,0.07)' }}>
-              <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(34,197,94,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#22c55e', fontWeight: 700, fontSize: 13, flexShrink: 0 }}>
-                {o.name[0]}
+              {o.image_url ? (
+                <img
+                  src={o.image_url}
+                  alt={o.name}
+                  style={{ width: 38, height: 38, borderRadius: '50%', objectFit: 'cover', border: '1px solid rgba(34,197,94,0.3)', flexShrink: 0 }}
+                />
+              ) : (
+                <div style={{ width: 38, height: 38, borderRadius: '50%', background: 'rgba(34,197,94,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#22c55e', fontWeight: 700, fontSize: 14, flexShrink: 0 }}>
+                  {o.name[0]}
+                </div>
+              )}
+              <div>
+                <p style={{ fontSize: 13, color: '#f0f2f1', fontWeight: 500, margin: 0 }}>{o.name}</p>
+                {o.position && <p style={{ fontSize: 11, color: '#5a6560', margin: 0, marginTop: 2 }}>{o.position}</p>}
               </div>
-              <span style={{ fontSize: 13, color: '#f0f2f1' }}>{o.name}</span>
             </div>
           ))}
         </div>
