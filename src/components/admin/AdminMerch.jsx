@@ -197,7 +197,7 @@ export default function AdminMerch() {
       ...filtered.map((o) => [
         `"${[o.first_name, o.middle_initial ? o.middle_initial + '.' : '', o.last_name].filter(Boolean).join(' ')}"`,
         `"${o.email}"`, `"${o.phone_number}"`, `"${o.sex || ''}"`,
-        `"${o.item_name}"`, `"${o.size || ''}"`, `"${o.payment_method}"`,
+        `"${o.item_name}"`, `"${o.size || ''}"`,`"${o.back_text || ''}"`,`"${o.payment_method}"`,
         `"${o.gcash_reference || ''}"`, o.is_paid ? 'Yes' : 'No',
         `"${new Date(o.created_at).toLocaleString('en-PH')}"`,
       ].join(',')),
