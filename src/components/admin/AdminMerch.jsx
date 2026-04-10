@@ -29,30 +29,33 @@ function EarningsTab({ orders, rows }) {
   const priceMap = {};
   rows.forEach((item) => { priceMap[item.name] = Number(item.price) || 0; });
 
-  const paidOrders   = orders.filter((o) => o.is_paid);
-  const unpaidOrders = orders.filter((o) => !o.is_paid);
+  // Free orders (is_paid === null) are excluded from revenue calculations
+  const paidOrders   = orders.filter((o) => o.is_paid === true);
+  const unpaidOrders = orders.filter((o) => o.is_paid === false);
+  const freeOrders   = orders.filter((o) => o.is_paid === null);
   const totalEarned  = paidOrders.reduce((s, o) => s + (priceMap[o.item_name] || 0), 0);
   const totalPending = unpaidOrders.reduce((s, o) => s + (priceMap[o.item_name] || 0), 0);
-  const totalRevenue = totalEarned + totalPending;
+  const totalRevenue = totalEarned + totalPending; // free orders not counted
 
   const byItem = {};
   orders.forEach((o) => {
-    if (!byItem[o.item_name]) byItem[o.item_name] = { name: o.item_name, price: priceMap[o.item_name] || 0, total: 0, paid: 0, unpaid: 0 };
+    if (!byItem[o.item_name]) byItem[o.item_name] = { name: o.item_name, price: priceMap[o.item_name] || 0, total: 0, paid: 0, unpaid: 0, free: 0 };
     byItem[o.item_name].total++;
-    if (o.is_paid) byItem[o.item_name].paid++;
-    else byItem[o.item_name].unpaid++;
+    if (o.is_paid === true)  byItem[o.item_name].paid++;
+    else if (o.is_paid === false) byItem[o.item_name].unpaid++;
+    else byItem[o.item_name].free++;
   });
   const breakdown = Object.values(byItem).sort((a, b) => (b.paid * b.price) - (a.paid * a.price));
-  const cols = '2fr 0.8fr 0.8fr 0.8fr 1fr 1fr';
+  const cols = '2fr 0.7fr 0.7fr 0.6fr 0.6fr 1fr 1fr';
 
   return (
     <div className="fade-in">
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 14, marginBottom: 28 }}>
         {[
-          { label: 'Total Revenue',   value: fmt(totalRevenue), sub: `${orders.length} order${orders.length !== 1 ? 's' : ''}`, color: '#f0f2f1', bg: 'rgba(255,255,255,0.04)' },
-          { label: 'Collected',       value: fmt(totalEarned),  sub: `${paidOrders.length} paid`,                               color: '#22c55e', bg: 'rgba(34,197,94,0.08)'   },
-          { label: 'Pending',         value: fmt(totalPending), sub: `${unpaidOrders.length} unpaid`,                           color: '#fbbf24', bg: 'rgba(251,191,36,0.08)'  },
-          { label: 'Collection Rate', value: pct(paidOrders.length, orders.length), sub: 'of orders paid',                      color: '#93c5fd', bg: 'rgba(96,165,250,0.08)'  },
+          { label: 'Total Revenue',   value: fmt(totalRevenue), sub: `${paidOrders.length + unpaidOrders.length} billable orders`, color: '#f0f2f1', bg: 'rgba(255,255,255,0.04)' },
+          { label: 'Collected',       value: fmt(totalEarned),  sub: `${paidOrders.length} paid`,                                      color: '#22c55e', bg: 'rgba(34,197,94,0.08)'   },
+          { label: 'Pending',         value: fmt(totalPending), sub: `${unpaidOrders.length} unpaid`,                                   color: '#fbbf24', bg: 'rgba(251,191,36,0.08)'  },
+          { label: 'Free / Exempt',   value: String(freeOrders.length), sub: 'not counted in revenue',                                  color: '#c4b5fd', bg: 'rgba(167,139,250,0.08)' },
         ].map(({ label, value, sub, color, bg }) => (
           <div key={label} style={{ background: bg, border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, padding: '18px 20px' }}>
             <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#5a6560', marginBottom: 10 }}>{label}</p>
@@ -64,7 +67,7 @@ function EarningsTab({ orders, rows }) {
 
       <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, padding: '16px 20px', marginBottom: 28 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
-          <span style={{ fontSize: 12, color: '#9aa39d', fontWeight: 500 }}>Collection progress</span>
+          <span style={{ fontSize: 12, color: '#9aa39d', fontWeight: 500 }}>Collection progress (billable only)</span>
           <span style={{ fontSize: 12, color: '#22c55e', fontWeight: 600 }}>{fmt(totalEarned)} / {fmt(totalRevenue)}</span>
         </div>
         <div style={{ height: 6, background: 'rgba(255,255,255,0.08)', borderRadius: 3, overflow: 'hidden' }}>
@@ -85,7 +88,7 @@ function EarningsTab({ orders, rows }) {
       ) : (
         <div style={{ background: '#131615', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, overflow: 'hidden' }}>
           <div style={{ display: 'grid', gridTemplateColumns: cols, padding: '10px 16px', borderBottom: '1px solid rgba(255,255,255,0.07)', background: 'rgba(255,255,255,0.02)' }}>
-            {['Item', 'Price', 'Orders', 'Paid', 'Collected', 'Pending'].map((h) => (
+            {['Item', 'Price', 'Orders', 'Paid', 'Free', 'Collected', 'Pending'].map((h) => (
               <span key={h} style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#5a6560' }}>{h}</span>
             ))}
           </div>
@@ -94,12 +97,8 @@ function EarningsTab({ orders, rows }) {
               <span style={{ fontSize: 13, color: '#f0f2f1', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</span>
               <span style={{ fontSize: 12, color: '#9aa39d' }}>{fmt(item.price)}</span>
               <span style={{ fontFamily: "'Syne',sans-serif", fontWeight: 700, fontSize: 13, color: '#f0f2f1' }}>{item.total}</span>
-              <span>
-                <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 100, background: 'rgba(34,197,94,0.12)', color: '#22c55e' }}>{item.paid}</span>
-                {item.unpaid > 0 && (
-                  <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 100, background: 'rgba(251,191,36,0.1)', color: '#fbbf24', marginLeft: 4 }}>{item.unpaid}</span>
-                )}
-              </span>
+              <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 100, background: 'rgba(34,197,94,0.12)', color: '#22c55e' }}>{item.paid}</span>
+              <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 100, background: item.free > 0 ? 'rgba(167,139,250,0.12)' : 'rgba(255,255,255,0.04)', color: item.free > 0 ? '#c4b5fd' : '#5a6560' }}>{item.free}</span>
               <span style={{ fontSize: 13, color: '#22c55e', fontWeight: 600 }}>{fmt(item.paid * item.price)}</span>
               <span style={{ fontSize: 13, color: item.unpaid > 0 ? '#fbbf24' : '#5a6560', fontWeight: item.unpaid > 0 ? 600 : 400 }}>{fmt(item.unpaid * item.price)}</span>
             </div>
@@ -109,6 +108,7 @@ function EarningsTab({ orders, rows }) {
             <span />
             <span style={{ fontFamily: "'Syne',sans-serif", fontWeight: 700, fontSize: 13, color: '#f0f2f1' }}>{orders.length}</span>
             <span style={{ fontFamily: "'Syne',sans-serif", fontWeight: 700, fontSize: 13, color: '#22c55e' }}>{paidOrders.length}</span>
+            <span style={{ fontFamily: "'Syne',sans-serif", fontWeight: 700, fontSize: 13, color: '#c4b5fd' }}>{freeOrders.length}</span>
             <span style={{ fontSize: 13, color: '#22c55e', fontWeight: 700 }}>{fmt(totalEarned)}</span>
             <span style={{ fontSize: 13, color: '#fbbf24', fontWeight: 700 }}>{fmt(totalPending)}</span>
           </div>
@@ -131,6 +131,7 @@ export default function AdminMerch() {
   const [savingEdit,      setSavingEdit]      = useState(false);
   const [filterItem,        setFilterItem]        = useState('all');
   const [filterPaid,        setFilterPaid]        = useState('all');
+  const [searchQuery,       setSearchQuery]       = useState('');
   const [itemNames,         setItemNames]         = useState(['all']);
   const [togglingPaid,      setTogglingPaid]      = useState(null);
 
@@ -154,10 +155,11 @@ export default function AdminMerch() {
   const togglePaid = async (e, order) => {
     e.stopPropagation();
     setTogglingPaid(order.id);
-    const newVal = !order.is_paid;
-    await supabase.from('merch_preorders').update({ is_paid: newVal }).eq('id', order.id);
-    setOrders((prev) => prev.map((o) => o.id === order.id ? { ...o, is_paid: newVal } : o));
-    if (selectedOrder?.id === order.id) setSelectedOrder((p) => ({ ...p, is_paid: newVal }));
+    // Cycle: false (unpaid) → true (paid) → null (free) → false
+    const next = order.is_paid === false ? true : order.is_paid === true ? null : false;
+    await supabase.from('merch_preorders').update({ is_paid: next }).eq('id', order.id);
+    setOrders((prev) => prev.map((o) => o.id === order.id ? { ...o, is_paid: next } : o));
+    if (selectedOrder?.id === order.id) setSelectedOrder((p) => ({ ...p, is_paid: next }));
     setTogglingPaid(null);
   };
 
@@ -198,7 +200,7 @@ export default function AdminMerch() {
         `"${[o.first_name, o.middle_initial ? o.middle_initial + '.' : '', o.last_name].filter(Boolean).join(' ')}"`,
         `"${o.email}"`, `"${o.phone_number}"`, `"${o.sex || ''}"`,
         `"${o.item_name}"`, `"${o.size || ''}"`,`"${o.back_text || ''}"`,`"${o.payment_method}"`,
-        `"${o.gcash_reference || ''}"`, o.is_paid ? 'Yes' : 'No',
+        `"${o.gcash_reference || ''}"`, o.is_paid === true ? 'Paid' : o.is_paid === null ? 'Free' : 'Unpaid',
         `"${new Date(o.created_at).toLocaleString('en-PH')}"`,
       ].join(',')),
     ];
@@ -214,13 +216,20 @@ export default function AdminMerch() {
   const getFiltered = () => {
     let f = orders;
     if (filterItem !== 'all') f = f.filter((o) => o.item_name === filterItem);
-    if (filterPaid === 'paid')   f = f.filter((o) => o.is_paid);
-    if (filterPaid === 'unpaid') f = f.filter((o) => !o.is_paid);
+    if (filterPaid === 'paid')   f = f.filter((o) => o.is_paid === true);
+    if (filterPaid === 'unpaid') f = f.filter((o) => o.is_paid === false);
+    if (filterPaid === 'free')   f = f.filter((o) => o.is_paid === null);
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      f = f.filter((o) =>
+        [o.first_name, o.last_name, o.email, o.phone_number, o.item_name].some((v) => v?.toLowerCase().includes(q))
+      );
+    }
     return f;
   };
 
   const filteredOrders = getFiltered();
-  const unpaidCount    = orders.filter((o) => !o.is_paid).length;
+  const unpaidCount    = orders.filter((o) => o.is_paid === false).length;
 
   const TABS = [
     { id: 'items',    label: 'Items',      icon: <ShoppingBag size={13} /> },
@@ -276,6 +285,30 @@ export default function AdminMerch() {
 
       {tab === 'orders' && (
         <div>
+          {/* Search */}
+          <div style={{ position: 'relative', marginBottom: 12 }}>
+            <input
+              className="adm-input"
+              type="text"
+              placeholder="Search by name, email, phone, or item…"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{ paddingLeft: 36 }}
+            />
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#5a6560', pointerEvents: 'none' }}>
+              <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.5"/>
+              <path d="M9.5 9.5L12 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+            {searchQuery && (
+              <button onClick={() => setSearchQuery('')}
+                style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#5a6560', cursor: 'pointer', padding: 2, display: 'flex', borderRadius: 4 }}
+                onMouseEnter={(e) => e.currentTarget.style.color = '#f0f2f1'}
+                onMouseLeave={(e) => e.currentTarget.style.color = '#5a6560'}>
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+              </button>
+            )}
+          </div>
+
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
               <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
@@ -290,13 +323,18 @@ export default function AdminMerch() {
                 ))}
               </div>
               <div style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.1)', margin: '0 2px' }} />
-              {['all', 'paid', 'unpaid'].map((f) => (
-                <button key={f} onClick={() => setFilterPaid(f)}
+              {[
+                { id: 'all',    label: 'All Status', activeBg: 'rgba(255,255,255,0.12)', activeColor: '#f0f2f1' },
+                { id: 'paid',   label: 'Paid',        activeBg: 'rgba(34,197,94,0.15)',  activeColor: '#22c55e' },
+                { id: 'unpaid', label: 'Unpaid',      activeBg: 'rgba(239,68,68,0.15)',  activeColor: '#f87171' },
+                { id: 'free',   label: 'Free',        activeBg: 'rgba(167,139,250,0.15)',activeColor: '#c4b5fd' },
+              ].map(({ id, label, activeBg, activeColor }) => (
+                <button key={id} onClick={() => setFilterPaid(id)}
                   style={{ padding: '5px 12px', borderRadius: 100, fontSize: 12, fontWeight: 500, cursor: 'pointer', border: 'none', fontFamily: "'Outfit',sans-serif", textTransform: 'capitalize', transition: 'all 0.15s',
-                    background: filterPaid === f ? (f === 'paid' ? 'rgba(34,197,94,0.15)' : f === 'unpaid' ? 'rgba(239,68,68,0.15)' : 'rgba(255,255,255,0.12)') : 'rgba(255,255,255,0.06)',
-                    color:      filterPaid === f ? (f === 'paid' ? '#22c55e' : f === 'unpaid' ? '#f87171' : '#f0f2f1') : '#9aa39d',
+                    background: filterPaid === id ? activeBg : 'rgba(255,255,255,0.06)',
+                    color:      filterPaid === id ? activeColor : '#9aa39d',
                   }}>
-                  {f === 'all' ? 'All Status' : f}
+                  {label}
                 </button>
               ))}
               <span style={{ fontSize: 12, color: '#5a6560' }}>{filteredOrders.length} order{filteredOrders.length !== 1 ? 's' : ''}</span>
@@ -349,9 +387,11 @@ export default function AdminMerch() {
                     <button className="paid-toggle"
                       onClick={(e) => togglePaid(e, o)}
                       disabled={togglingPaid === o.id}
-                      style={{ background: o.is_paid ? 'rgba(34,197,94,0.12)' : 'rgba(255,255,255,0.05)', color: o.is_paid ? '#22c55e' : '#5a6560', opacity: togglingPaid === o.id ? 0.5 : 1 }}>
-                      {o.is_paid ? <CheckCircle size={13} /> : <Circle size={13} />}
-                      {o.is_paid ? 'Paid' : 'Unpaid'}
+                      style={{ opacity: togglingPaid === o.id ? 0.5 : 1,
+                        background: o.is_paid === true ? 'rgba(34,197,94,0.12)' : o.is_paid === null ? 'rgba(167,139,250,0.12)' : 'rgba(255,255,255,0.05)',
+                        color: o.is_paid === true ? '#22c55e' : o.is_paid === null ? '#c4b5fd' : '#5a6560' }}>
+                      {o.is_paid === true ? <CheckCircle size={13} /> : o.is_paid === null ? <Circle size={13} /> : <Circle size={13} />}
+                      {o.is_paid === true ? 'Paid' : o.is_paid === null ? 'Free' : 'Unpaid'}
                     </button>
                   </span>
                   <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
@@ -394,9 +434,10 @@ export default function AdminMerch() {
                 <button className="paid-toggle"
                   onClick={(e) => togglePaid(e, selectedOrder)}
                   disabled={togglingPaid === selectedOrder.id}
-                  style={{ background: selectedOrder.is_paid ? 'rgba(34,197,94,0.12)' : 'rgba(255,255,255,0.06)', color: selectedOrder.is_paid ? '#22c55e' : '#5a6560' }}>
-                  {selectedOrder.is_paid ? <CheckCircle size={12} /> : <Circle size={12} />}
-                  {selectedOrder.is_paid ? 'Paid' : 'Mark as Paid'}
+                  style={{ background: selectedOrder.is_paid === true ? 'rgba(34,197,94,0.12)' : selectedOrder.is_paid === null ? 'rgba(167,139,250,0.12)' : 'rgba(255,255,255,0.06)',
+                           color: selectedOrder.is_paid === true ? '#22c55e' : selectedOrder.is_paid === null ? '#c4b5fd' : '#5a6560' }}>
+                  {selectedOrder.is_paid === true ? <CheckCircle size={12} /> : <Circle size={12} />}
+                  {selectedOrder.is_paid === true ? 'Paid' : selectedOrder.is_paid === null ? 'Free' : 'Mark as Paid'}
                 </button>
               </div>
               <div style={{ display: 'flex', gap: 6 }}>
@@ -426,12 +467,12 @@ export default function AdminMerch() {
                 ['Back Text', selectedOrder.back_text || '—'],
                 ['Payment',   selectedOrder.payment_method],
                 ['GCash Ref', selectedOrder.gcash_reference || '—'],
-                ['Status',    selectedOrder.is_paid ? 'Paid' : 'Unpaid'],
+                ['Status',    selectedOrder.is_paid === true ? 'Paid' : selectedOrder.is_paid === null ? 'Free' : 'Unpaid'],
                 ['Submitted', new Date(selectedOrder.created_at).toLocaleString('en-PH')],
               ].map(([label, value]) => (
                 <div key={label} style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                   <span style={{ fontSize: 12, color: '#5a6560', fontWeight: 500, flexShrink: 0 }}>{label}</span>
-                  <span style={{ fontSize: 13, color: label === 'Status' ? (selectedOrder.is_paid ? '#22c55e' : '#f87171') : '#f0f2f1', textAlign: 'right', maxWidth: '60%', wordBreak: 'break-word' }}>{value}</span>
+                  <span style={{ fontSize: 13, color: label === 'Status' ? (selectedOrder.is_paid === true ? '#22c55e' : selectedOrder.is_paid === null ? '#c4b5fd' : '#f87171') : '#f0f2f1', textAlign: 'right', maxWidth: '60%', wordBreak: 'break-word' }}>{value}</span>
                 </div>
               ))}
             </div>
