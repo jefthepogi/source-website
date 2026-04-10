@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import '../../admin.css';
 import { supabase } from '../../lib/supabase';
 import { CRUDTable } from './CRUDTable';
-import { ShoppingBag, Download, X, Eye, Users, CheckCircle, Circle, Trash2, AlertTriangle, TrendingUp, Pencil } from 'lucide-react';
+import { ShoppingBag, Download, X, Eye, Users, CheckCircle, Circle, Trash2, AlertTriangle, TrendingUp, Pencil, Package } from 'lucide-react';
 
 const MERCH_FIELDS = [
   { name: 'name',        label: 'Item Name',   type: 'text',     required: true },
@@ -24,6 +24,161 @@ const MERCH_COLUMNS = [
 
 const fmt = (n) => `PHP ${Number(n).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const pct = (n, d) => d === 0 ? '0%' : Math.round((n / d) * 100) + '%';
+
+// ── Claiming Tab ──────────────────────────────────────────────────────────────
+function ClaimingTab({ orders, onToggleClaim }) {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterClaim, setFilterClaim] = useState('unclaimed');
+  const [filterItem,  setFilterItem]  = useState('all');
+
+  const paidOrders = orders.filter((o) => o.is_paid === true || o.is_paid === null);
+  const itemNames  = ['all', ...new Set(paidOrders.map((o) => o.item_name))];
+
+  const filtered = paidOrders.filter((o) => {
+    if (filterClaim === 'claimed')   return o.is_claimed;
+    if (filterClaim === 'unclaimed') return !o.is_claimed;
+    return true;
+  }).filter((o) => {
+    if (filterItem !== 'all') return o.item_name === filterItem;
+    return true;
+  }).filter((o) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    return [o.first_name, o.last_name, o.email, o.item_name, o.size].some((v) => v?.toLowerCase().includes(q));
+  });
+
+  const totalPaid      = paidOrders.length;
+  const totalClaimed   = paidOrders.filter((o) => o.is_claimed).length;
+  const totalUnclaimed = totalPaid - totalClaimed;
+
+  return (
+    <div className="fade-in">
+      {/* Summary */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 12, marginBottom: 24 }}>
+        {[
+          { label: 'Ready to Claim', value: totalPaid,      color: '#f0f2f1', bg: 'rgba(255,255,255,0.04)' },
+          { label: 'Claimed',        value: totalClaimed,   color: '#22c55e', bg: 'rgba(34,197,94,0.08)'   },
+          { label: 'Unclaimed',      value: totalUnclaimed, color: '#fbbf24', bg: 'rgba(251,191,36,0.08)'  },
+        ].map(({ label, value, color, bg }) => (
+          <div key={label} style={{ background: bg, border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, padding: '16px 18px' }}>
+            <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#5a6560', marginBottom: 8 }}>{label}</p>
+            <p style={{ fontFamily: "'Syne',sans-serif", fontWeight: 700, fontSize: '1.6rem', color, lineHeight: 1 }}>{value}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Progress bar */}
+      <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, padding: '14px 18px', marginBottom: 20 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+          <span style={{ fontSize: 12, color: '#9aa39d', fontWeight: 500 }}>Claiming progress</span>
+          <span style={{ fontSize: 12, color: '#22c55e', fontWeight: 600 }}>{totalClaimed} / {totalPaid} claimed</span>
+        </div>
+        <div style={{ height: 6, background: 'rgba(255,255,255,0.08)', borderRadius: 3, overflow: 'hidden' }}>
+          <div style={{ height: '100%', borderRadius: 3, background: 'linear-gradient(to right, #22c55e, #4ade80)', width: totalPaid > 0 ? `${Math.round((totalClaimed / totalPaid) * 100)}%` : '0%', transition: 'width 0.6s ease' }} />
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
+        {/* Claim status */}
+        {[
+          { id: 'all',       label: 'All',       activeBg: 'rgba(255,255,255,0.12)', activeColor: '#f0f2f1' },
+          { id: 'unclaimed', label: 'Unclaimed', activeBg: 'rgba(251,191,36,0.15)',  activeColor: '#fbbf24' },
+          { id: 'claimed',   label: 'Claimed',   activeBg: 'rgba(34,197,94,0.15)',   activeColor: '#22c55e' },
+        ].map(({ id, label, activeBg, activeColor }) => (
+          <button key={id} onClick={() => setFilterClaim(id)}
+            style={{ padding: '5px 12px', borderRadius: 100, fontSize: 12, fontWeight: 500, cursor: 'pointer', border: 'none', fontFamily: "'Outfit',sans-serif", transition: 'all 0.15s',
+              background: filterClaim === id ? activeBg : 'rgba(255,255,255,0.06)',
+              color:      filterClaim === id ? activeColor : '#9aa39d',
+            }}>{label}</button>
+        ))}
+        <div style={{ width: 1, height: 14, background: 'rgba(255,255,255,0.1)' }} />
+        {/* Item filter */}
+        {itemNames.map((name) => (
+          <button key={name} onClick={() => setFilterItem(name)}
+            style={{ padding: '5px 12px', borderRadius: 100, fontSize: 12, fontWeight: 500, cursor: 'pointer', border: 'none', fontFamily: "'Outfit',sans-serif", transition: 'all 0.15s',
+              background: filterItem === name ? '#f0f2f1' : 'rgba(255,255,255,0.06)',
+              color:      filterItem === name ? '#000'    : '#9aa39d',
+            }}>{name === 'all' ? 'All Items' : name}</button>
+        ))}
+        <span style={{ marginLeft: 'auto', fontSize: 12, color: '#5a6560' }}>{filtered.length} order{filtered.length !== 1 ? 's' : ''}</span>
+      </div>
+
+      {/* Search */}
+      <div style={{ position: 'relative', marginBottom: 16 }}>
+        <input className="adm-input" type="text" placeholder="Search by name, email, or item…"
+          value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} style={{ paddingLeft: 36 }} />
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#5a6560', pointerEvents: 'none' }}>
+          <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.5"/>
+          <path d="M9.5 9.5L12 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        </svg>
+        {searchQuery && (
+          <button onClick={() => setSearchQuery('')}
+            style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#5a6560', cursor: 'pointer', padding: 2, display: 'flex' }}>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+          </button>
+        )}
+      </div>
+
+      {/* List */}
+      {filtered.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '48px 0', color: '#5a6560' }}>
+          <Package size={32} style={{ margin: '0 auto 12px', opacity: 0.25, display: 'block' }} />
+          <p style={{ fontSize: 14 }}>No orders found.</p>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {filtered.map((o) => {
+            const fullName = [o.first_name, o.middle_initial ? o.middle_initial + '.' : '', o.last_name].filter(Boolean).join(' ');
+            return (
+              <div key={o.id} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px', background: o.is_claimed ? 'rgba(34,197,94,0.04)' : '#131615', border: `1px solid ${o.is_claimed ? 'rgba(34,197,94,0.2)' : 'rgba(255,255,255,0.07)'}`, borderRadius: 12, transition: 'all 0.2s' }}>
+                {/* Status indicator */}
+                <div style={{ width: 10, height: 10, borderRadius: '50%', flexShrink: 0, background: o.is_claimed ? '#22c55e' : 'rgba(251,191,36,0.6)', boxShadow: o.is_claimed ? '0 0 6px rgba(34,197,94,0.5)' : 'none' }} />
+
+                {/* Info */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                    <p style={{ fontSize: 13, fontWeight: 600, color: '#f0f2f1', margin: 0 }}>{fullName}</p>
+                    {o.size && <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 100, background: 'rgba(255,255,255,0.07)', color: '#9aa39d' }}>{o.size}</span>}
+                    {o.is_paid === null && <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 100, background: 'rgba(167,139,250,0.12)', color: '#c4b5fd' }}>FREE</span>}
+                  </div>
+                  <p style={{ fontSize: 12, color: '#5a6560', margin: '2px 0 0' }}>{o.item_name}</p>
+                </div>
+
+                {/* Date claimed or pending */}
+                <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                  {o.is_claimed ? (
+                    <p style={{ fontSize: 11, color: '#22c55e', fontWeight: 500 }}>✓ Claimed</p>
+                  ) : (
+                    <p style={{ fontSize: 11, color: '#fbbf24' }}>Pending</p>
+                  )}
+                  <p style={{ fontSize: 10, color: '#5a6560', marginTop: 2 }}>
+                    {new Date(o.created_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric' })}
+                  </p>
+                </div>
+
+                {/* Toggle button */}
+                <button
+                  onClick={(e) => onToggleClaim(e, o)}
+                  style={{ flexShrink: 0, padding: '7px 14px', borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: "'Outfit',sans-serif", border: '1px solid', transition: 'all 0.2s',
+                    background: o.is_claimed ? 'transparent' : '#22c55e',
+                    color:      o.is_claimed ? '#5a6560'    : '#000',
+                    borderColor: o.is_claimed ? 'rgba(255,255,255,0.1)' : '#22c55e',
+                  }}
+                  onMouseEnter={(e) => !o.is_claimed && (e.currentTarget.style.background = '#28d468')}
+                  onMouseLeave={(e) => !o.is_claimed && (e.currentTarget.style.background = '#22c55e')}
+                >
+                  {o.is_claimed ? 'Undo' : 'Mark Claimed'}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 
 function EarningsTab({ orders, rows }) {
   const priceMap = {};
@@ -163,6 +318,14 @@ export default function AdminMerch() {
     setTogglingPaid(null);
   };
 
+  const toggleClaim = async (e, order) => {
+    e.stopPropagation();
+    const newVal = !order.is_claimed;
+    await supabase.from('merch_preorders').update({ is_claimed: newVal }).eq('id', order.id);
+    setOrders((prev) => prev.map((o) => o.id === order.id ? { ...o, is_claimed: newVal } : o));
+    if (selectedOrder?.id === order.id) setSelectedOrder((p) => ({ ...p, is_claimed: newVal }));
+  };
+
   const deleteOrder = async () => {
     await supabase.from('merch_preorders').delete().eq('id', deleteOrderTarget.id);
     setOrders((prev) => prev.filter((o) => o.id !== deleteOrderTarget.id));
@@ -195,12 +358,12 @@ export default function AdminMerch() {
   const exportCSV = () => {
     const filtered = getFiltered();
     const csvRows = [
-      ['Full Name', 'Email', 'Phone', 'Sex', 'Item', 'Size', 'Back Text', 'Payment', 'GCash Ref', 'Paid', 'Submitted'],
+      ['Full Name', 'Email', 'Phone', 'Sex', 'Item', 'Size', 'Back Text', 'Payment', 'GCash Ref', 'Paid', 'Claimed', 'Submitted'],
       ...filtered.map((o) => [
         `"${[o.first_name, o.middle_initial ? o.middle_initial + '.' : '', o.last_name].filter(Boolean).join(' ')}"`,
         `"${o.email}"`, `"${o.phone_number}"`, `"${o.sex || ''}"`,
         `"${o.item_name}"`, `"${o.size || ''}"`,`"${o.back_text || ''}"`,`"${o.payment_method}"`,
-        `"${o.gcash_reference || ''}"`, o.is_paid === true ? 'Paid' : o.is_paid === null ? 'Free' : 'Unpaid',
+        `"${o.gcash_reference || ''}"`, o.is_paid === true ? 'Paid' : o.is_paid === null ? 'Free' : 'Unpaid', o.is_claimed ? 'Yes' : 'No',
         `"${new Date(o.created_at).toLocaleString('en-PH')}"`,
       ].join(',')),
     ];
@@ -231,9 +394,12 @@ export default function AdminMerch() {
   const filteredOrders = getFiltered();
   const unpaidCount    = orders.filter((o) => o.is_paid === false).length;
 
+  const unclaimedCount = orders.filter((o) => o.is_paid === true && !o.is_claimed).length;
+
   const TABS = [
     { id: 'items',    label: 'Items',      icon: <ShoppingBag size={13} /> },
     { id: 'orders',   label: 'Pre-Orders', icon: <Users size={13} />,      badge: unpaidCount > 0 ? unpaidCount : null },
+    { id: 'claims',   label: 'Claiming',   icon: <Package size={13} />,    badge: unclaimedCount > 0 ? unclaimedCount : null },
     { id: 'earnings', label: 'Earnings',   icon: <TrendingUp size={13} /> },
   ];
 
@@ -422,6 +588,7 @@ export default function AdminMerch() {
         </div>
       )}
 
+      {tab === 'claims'   && <ClaimingTab orders={orders} onToggleClaim={toggleClaim} />}
       {tab === 'earnings' && <EarningsTab orders={orders} rows={rows} />}
 
       {selectedOrder && (
