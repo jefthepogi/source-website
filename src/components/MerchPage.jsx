@@ -74,9 +74,6 @@ const SIZED_CATEGORIES = ['Jersey', 'Shirt', 'Hoodie'];
 const NO_SIZE_CATEGORIES = ['Lanyard', 'Cap', 'Sticker', 'Other'];
 const hasBackName   = (item) => item?.show_back_name   ?? false;
 const hasBackNumber = (item) => item?.show_back_number ?? false;
-// Legacy category-based fallback for items not yet updated in DB
-const hasBackText = (item) => hasBackName(item) || ['Jersey', 'Shirt'].includes(item?.category);
-
 const hasSizes = (item) => {
   // Never ask for size on these categories regardless of sizes array
   if (NO_SIZE_CATEGORIES.includes(item.category)) return false;
