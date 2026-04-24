@@ -11,7 +11,11 @@ const MERCH_FIELDS = [
   { name: 'image_url',   label: 'Item Image',  type: 'image',    folder: 'merch', bucket: 'images' },
   { name: 'category',    label: 'Category',    type: 'select',   options: ['Jersey', 'Shirt', 'Hoodie', 'Cap', 'Lanyard', 'Sticker', 'Other'] },
   { name: 'sort_order',  label: 'Sort Order',  type: 'number',   placeholder: '0' },
-  { name: 'available',   label: 'Available',   type: 'boolean' },
+  { name: 'available',         label: 'Available',              type: 'boolean' },
+  { name: 'show_back_name',     label: 'Show Back Name field',   type: 'boolean' },
+  { name: 'back_name_required', label: 'Back Name is Required',  type: 'boolean' },
+  { name: 'show_back_number',   label: 'Show Back Number field', type: 'boolean' },
+  { name: 'back_number_required', label: 'Back Number is Required', type: 'boolean' },
 ];
 
 const MERCH_COLUMNS = [
@@ -344,6 +348,7 @@ export default function AdminMerch() {
       email:            editForm.email.trim()            || null,
       size:             editForm.size                    || null,
       back_text:        editForm.back_text.trim()        || null,
+      back_number:      editForm.back_number?.trim()     || null,
       payment_method:   editForm.payment_method          || null,
       gcash_reference:  editForm.gcash_reference.trim() || null,
     };
@@ -358,7 +363,7 @@ export default function AdminMerch() {
   const exportCSV = () => {
     const filtered = getFiltered();
     const csvRows = [
-      ['Full Name', 'Email', 'Phone', 'Sex', 'Item', 'Size', 'Back Text', 'Payment', 'GCash Ref', 'Paid', 'Claimed', 'Submitted'],
+      ['Full Name', 'Email', 'Phone', 'Sex', 'Item', 'Size', 'Back Name', 'Back Number', 'Payment', 'GCash Ref', 'Paid', 'Claimed', 'Submitted'],
       ...filtered.map((o) => [
         `"${[o.first_name, o.middle_initial ? o.middle_initial + '.' : '', o.last_name].filter(Boolean).join(' ')}"`,
         `"${o.email}"`, `"${o.phone_number}"`, `"${o.sex || ''}"`,
@@ -443,7 +448,7 @@ export default function AdminMerch() {
           onAdd={async (data) => { await supabase.from('merch_items').insert([{ ...data, available: data.available ?? true }]); fetchItems(); }}
           onEdit={async (id, data) => { await supabase.from('merch_items').update(data).eq('id', id); fetchItems(); }}
           onDelete={async (id) => { await supabase.from('merch_items').delete().eq('id', id); fetchItems(); }}
-          defaultValues={{ available: true, category: 'Jersey', sort_order: 0 }}
+          defaultValues={{ available: true, category: 'Jersey', sort_order: 0, show_back_name: false, back_name_required: false, show_back_number: false, back_number_required: false }}
           imageFolder="merch"
           hideTitle
         />
@@ -562,7 +567,7 @@ export default function AdminMerch() {
                   </span>
                   <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
                     <button style={{ background: 'transparent', border: 'none', color: '#5a6560', cursor: 'pointer', padding: 4, display: 'flex', borderRadius: 6, transition: 'color 0.15s' }}
-                      onClick={(e) => { e.stopPropagation(); setEditOrderTarget(o); setEditForm({ first_name: o.first_name || '', middle_initial: o.middle_initial || '', last_name: o.last_name || '', sex: o.sex || '', phone_number: o.phone_number || '', email: o.email || '', size: o.size || '', back_text: o.back_text || '', payment_method: o.payment_method || '', gcash_reference: o.gcash_reference || '' }); }}
+                      onClick={(e) => { e.stopPropagation(); setEditOrderTarget(o); setEditForm({ first_name: o.first_name || '', middle_initial: o.middle_initial || '', last_name: o.last_name || '', sex: o.sex || '', phone_number: o.phone_number || '', email: o.email || '', size: o.size || '', back_text: o.back_text || '', back_number: o.back_number || '', payment_method: o.payment_method || '', gcash_reference: o.gcash_reference || '' }); }}
                       onMouseEnter={(e) => e.currentTarget.style.color = '#22c55e'}
                       onMouseLeave={(e) => e.currentTarget.style.color = '#5a6560'}>
                       <Pencil size={13} />
@@ -631,7 +636,8 @@ export default function AdminMerch() {
                 ['Sex',       selectedOrder.sex || '—'],
                 ['Item',      selectedOrder.item_name],
                 ['Size',      selectedOrder.size || '—'],
-                ['Back Text', selectedOrder.back_text || '—'],
+                ['Back Name', selectedOrder.back_text || '—'],
+                ['Back Number', selectedOrder.back_number || '—'],
                 ['Payment',   selectedOrder.payment_method],
                 ['GCash Ref', selectedOrder.gcash_reference || '—'],
                 ['Status',    selectedOrder.is_paid === true ? 'Paid' : selectedOrder.is_paid === null ? 'Free' : 'Unpaid'],
@@ -721,10 +727,16 @@ export default function AdminMerch() {
                 </div>
               </div>
 
-              {/* Back text */}
+              {/* Back name */}
               <div>
-                <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#5a6560', marginBottom: 6 }}>Back Text</p>
+                <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#5a6560', marginBottom: 6 }}>Back Name</p>
                 <input className="adm-input" value={editForm.back_text} onChange={(e) => setEditForm((p) => ({ ...p, back_text: e.target.value }))} placeholder="e.g. DELA CRUZ" maxLength={20} />
+              </div>
+
+              {/* Back number */}
+              <div>
+                <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#5a6560', marginBottom: 6 }}>Back Number</p>
+                <input className="adm-input" value={editForm.back_number || ''} onChange={(e) => setEditForm((p) => ({ ...p, back_number: e.target.value }))} placeholder="e.g. 23" maxLength={4} />
               </div>
 
               {/* Payment method */}

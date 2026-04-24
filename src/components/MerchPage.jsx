@@ -71,9 +71,11 @@ const S = `
 
 // Items that have sizes (shirt-type items)
 const SIZED_CATEGORIES = ['Jersey', 'Shirt', 'Hoodie'];
-const BACK_TEXT_CATEGORIES = ['Jersey', 'Shirt'];
 const NO_SIZE_CATEGORIES = ['Lanyard', 'Cap', 'Sticker', 'Other'];
-const hasBackText = (item) => BACK_TEXT_CATEGORIES.includes(item.category);
+const hasBackName   = (item) => item?.show_back_name   ?? false;
+const hasBackNumber = (item) => item?.show_back_number ?? false;
+// Legacy category-based fallback for items not yet updated in DB
+const hasBackText = (item) => hasBackName(item) || ['Jersey', 'Shirt'].includes(item?.category);
 
 const hasSizes = (item) => {
   // Never ask for size on these categories regardless of sizes array
@@ -180,23 +182,53 @@ function Step1({ item, formData, setFormData, onNext }) {
       )}
 
       {/* Back text — only for shirts/jerseys */}
-      {hasBackText(item) && (
+      {/* Back Name */}
+      {hasBackName(item) && (
         <div style={{ marginBottom: 20 }}>
-          <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#5a6560', marginBottom: 6 }}>Back Text</p>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+            <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#5a6560', margin: 0 }}>
+              Back Name {item.back_name_required && <span style={{ color: '#f87171' }}>*</span>}
+            </p>
+          </div>
           <input
             className="ds-input"
             name="backText"
-            placeholder="Name to print on the back (optional)"
+            placeholder={item.back_name_required ? 'Name to print on the back' : 'Name to print on the back (optional)'}
             value={formData.backText}
             onChange={(e) => setFormData((p) => ({ ...p, backText: e.target.value }))}
             maxLength={20}
           />
           <p style={{ fontSize: 11, color: '#5a6560', marginTop: 5 }}>
-            This will be printed on the back of your {item.category?.toLowerCase()}. Leave blank if you want your last name to be printed instead.
+            {item.back_name_required
+              ? `Required. Will be printed on the back of your ${item.category?.toLowerCase()}.`
+              : `Leave blank to use your last name instead.`}
             <span style={{ float: 'right', color: formData.backText.length >= 18 ? '#fbbf24' : '#5a6560' }}>
               {formData.backText.length}/20
             </span>
           </p>
+        </div>
+      )}
+
+      {/* Back Number */}
+      {hasBackNumber(item) && (
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+            <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#5a6560', margin: 0 }}>
+              Back Number {item.back_number_required && <span style={{ color: '#f87171' }}>*</span>}
+            </p>
+          </div>
+          <input
+            className="ds-input"
+            name="backNumber"
+            placeholder={item.back_number_required ? 'Your jersey number' : 'Your jersey number (optional)'}
+            value={formData.backNumber}
+            onChange={(e) => setFormData((p) => ({ ...p, backNumber: e.target.value.replace(/[^0-9]/g, '') }))}
+            maxLength={4}
+            inputMode="numeric"
+          />
+          {!item.back_number_required && (
+            <p style={{ fontSize: 11, color: '#5a6560', marginTop: 5 }}>Optional. Leave blank to skip.</p>
+          )}
         </div>
       )}
 
@@ -523,7 +555,7 @@ export default function MerchPage() {
   const [formData, setFormData] = useState({
     firstName: '', middleInitial: '', lastName: '',
     sex: '', phoneNumber: '', email: '',
-    size: '', backText: '', paymentMethod: '', gcashReference: '',
+    size: '', backText: '', backNumber: '', paymentMethod: '', gcashReference: '',
   });
 
   useEffect(() => {
@@ -535,7 +567,7 @@ export default function MerchPage() {
     setSelectedItem(item);
     setShowModal(true);
     setFormStep(1);
-    setFormData({ firstName: '', middleInitial: '', lastName: '', sex: '', phoneNumber: '', email: '', size: '', backText: '', paymentMethod: '', gcashReference: '' });
+    setFormData({ firstName: '', middleInitial: '', lastName: '', sex: '', phoneNumber: '', email: '', size: '', backText: '', backNumber: '', paymentMethod: '', gcashReference: '' });
   };
 
   const closeModal = () => { setShowModal(false); setSelectedItem(null); };
@@ -628,8 +660,10 @@ export default function MerchPage() {
     if (item.category) addRow('Category', item.category);
     addRow('Price', 'PHP ' + Number(item.price).toFixed(2));
     if (orderData.size) addRow('Size', orderData.size);
-    const backTextValue = orderData._hasBackText ? (orderData.backText?.trim() || orderData.lastName?.trim()) : null;
-    if (backTextValue) addRow('Back Text', backTextValue);
+    const backNameValue = orderData._hasBackText ? (orderData.backText?.trim() || orderData.lastName?.trim()) : null;
+    if (backNameValue) addRow('Back Name', backNameValue);
+    const backNumValue = orderData._hasBackNumber ? orderData.backNumber?.trim() : null;
+    if (backNumValue) addRow('Back Number', backNumValue);
 
     addDivider();
 
@@ -710,10 +744,11 @@ export default function MerchPage() {
         gcash_reference: formData.gcashReference.trim() || null,
         item_name: selectedItem.name,
         item_id: selectedItem.id,
-        back_text: hasBackText(selectedItem) ? (formData.backText.trim() || formData.lastName.trim() || null) : null,
+        back_text: hasBackName(selectedItem) ? (formData.backText.trim() || (selectedItem.back_name_required ? null : formData.lastName.trim()) || null) : null,
+        back_number: hasBackNumber(selectedItem) ? (formData.backNumber.trim() || null) : null,
       }]);
       if (error) throw error;
-      generateReceipt({ ...formData, _hasBackText: hasBackText(selectedItem) }, selectedItem);
+      generateReceipt({ ...formData, _hasBackText: hasBackName(selectedItem), _hasBackNumber: hasBackNumber(selectedItem) }, selectedItem);
       toast.success('Pre-order confirmed! Your receipt is downloading.', {
         style: { background: '#131615', color: '#f0f2f1', border: '1px solid rgba(34,197,94,0.3)', fontFamily: "'Outfit',sans-serif" },
         duration: 4000,
