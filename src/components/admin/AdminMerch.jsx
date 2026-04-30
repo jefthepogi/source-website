@@ -212,7 +212,7 @@ function EarningsTab({ orders, rows }) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 14, marginBottom: 28 }}>
         {[
           { label: 'Total Revenue',   value: fmt(totalRevenue), sub: `${paidOrders.length + unpaidOrders.length} billable orders`, color: '#f0f2f1', bg: 'rgba(255,255,255,0.04)' },
-          { label: 'Collected',       value: fmt(totalEarned),  sub: `${paidOrders.length} paid`,                                      color: '#22c55e', bg: 'rgba(34,197,94,0.08)'   },
+          { label: 'Collected',       value: fmt(totalEarned),  sub: `${paidOrders.length} paid · GCash: ${fmt(paidOrders.filter(o=>o.payment_method==='GCash').reduce((s,o)=>s+(priceMap[o.item_name]||0),0))} / Cash: ${fmt(paidOrders.filter(o=>o.payment_method==='Cash').reduce((s,o)=>s+(priceMap[o.item_name]||0),0))}`, color: '#22c55e', bg: 'rgba(34,197,94,0.08)'   },
           { label: 'Pending',         value: fmt(totalPending), sub: `${unpaidOrders.length} unpaid`,                                   color: '#fbbf24', bg: 'rgba(251,191,36,0.08)'  },
           { label: 'Free / Exempt',   value: String(freeOrders.length), sub: 'not counted in revenue',                                  color: '#c4b5fd', bg: 'rgba(167,139,250,0.08)' },
         ].map(({ label, value, sub, color, bg }) => (
@@ -233,6 +233,49 @@ function EarningsTab({ orders, rows }) {
           <div style={{ height: '100%', borderRadius: 3, background: 'linear-gradient(to right, #22c55e, #4ade80)', width: totalRevenue > 0 ? pct(totalEarned, totalRevenue) : '0%', transition: 'width 0.6s ease' }} />
         </div>
       </div>
+
+      {/* Batch breakdown */}
+      {(() => {
+        const batches = [...new Set(orders.map((o) => o.batch || 1))].sort((a, b) => a - b);
+        if (batches.length <= 1) return null;
+        return (
+          <div style={{ marginBottom: 28 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+              <span style={{ width: 16, height: 1, background: '#22c55e', display: 'inline-block' }} />
+              <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#22c55e' }}>By Batch</span>
+            </div>
+            <div style={{ background: '#131615', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, overflow: 'hidden' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '80px 0.8fr 0.8fr 0.8fr 1fr 1fr 1fr', padding: '10px 16px', borderBottom: '1px solid rgba(255,255,255,0.07)', background: 'rgba(255,255,255,0.02)' }}>
+                {['Batch', 'Orders', 'Paid', 'GCash Paid', 'Cash Paid', 'Pending', 'Free'].map((h) => (
+                  <span key={h} style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#5a6560' }}>{h}</span>
+                ))}
+              </div>
+              {batches.map((b, i) => {
+                const bOrders  = orders.filter((o) => (o.batch || 1) === b);
+                const bPaid    = bOrders.filter((o) => o.is_paid === true);
+                const bGcash   = bPaid.filter((o) => o.payment_method === 'GCash');
+                const bCash    = bPaid.filter((o) => o.payment_method === 'Cash');
+                const bUnpaid  = bOrders.filter((o) => o.is_paid === false);
+                const bFree    = bOrders.filter((o) => o.is_paid === null);
+                const bGcashAmt = bGcash.reduce((s, o) => s + (priceMap[o.item_name] || 0), 0);
+                const bCashAmt  = bCash.reduce((s, o) => s + (priceMap[o.item_name] || 0), 0);
+                const bPending  = bUnpaid.reduce((s, o) => s + (priceMap[o.item_name] || 0), 0);
+                return (
+                  <div key={b} style={{ display: 'grid', gridTemplateColumns: '80px 0.8fr 0.8fr 0.8fr 1fr 1fr 1fr', padding: '12px 16px', borderBottom: i < batches.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none', alignItems: 'center' }}>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: '#22c55e', background: 'rgba(34,197,94,0.1)', borderRadius: 6, padding: '2px 8px', display: 'inline-block' }}>Batch {b}</span>
+                    <span style={{ fontSize: 13, fontFamily: "'Syne',sans-serif", fontWeight: 700, color: '#f0f2f1' }}>{bOrders.length}</span>
+                    <span style={{ fontSize: 12, color: '#22c55e', fontWeight: 600 }}>{bPaid.length}</span>
+                    <span style={{ fontSize: 12, color: '#93c5fd', fontWeight: 600 }}>{fmt(bGcashAmt)}</span>
+                    <span style={{ fontSize: 12, color: '#86efac', fontWeight: 600 }}>{fmt(bCashAmt)}</span>
+                    <span style={{ fontSize: 12, color: bPending > 0 ? '#fbbf24' : '#5a6560' }}>{fmt(bPending)}</span>
+                    <span style={{ fontSize: 12, color: bFree.length > 0 ? '#c4b5fd' : '#5a6560' }}>{bFree.length}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
         <span style={{ width: 16, height: 1, background: '#22c55e', display: 'inline-block' }} />
@@ -293,6 +336,9 @@ export default function AdminMerch() {
   const [searchQuery,       setSearchQuery]       = useState('');
   const [itemNames,         setItemNames]         = useState(['all']);
   const [togglingPaid,      setTogglingPaid]      = useState(null);
+  const [filterBatch,       setFilterBatch]       = useState('all');
+  const [managingBatches,   setManagingBatches]   = useState(false);
+  const [newBatchTarget,    setNewBatchTarget]    = useState(null);
 
   const fetchItems = useCallback(async () => {
     setLoadingItems(true);
@@ -351,6 +397,7 @@ export default function AdminMerch() {
       back_number:      editForm.back_number?.trim()     || null,
       payment_method:   editForm.payment_method          || null,
       gcash_reference:  editForm.gcash_reference.trim() || null,
+      batch:            Number(editForm.batch) || 1,
     };
     await supabase.from('merch_preorders').update(payload).eq('id', editOrderTarget.id);
     const updated = { ...editOrderTarget, ...payload };
@@ -363,12 +410,21 @@ export default function AdminMerch() {
   const exportCSV = () => {
     const filtered = getFiltered();
     const csvRows = [
-      ['Full Name', 'Email', 'Phone', 'Sex', 'Item', 'Size', 'Back Name', 'Back Number', 'Payment', 'GCash Ref', 'Paid', 'Claimed', 'Submitted'],
+      ['Batch', 'Full Name', 'Email', 'Phone', 'Sex', 'Item', 'Size', 'Back Name', 'Back Number', 'Payment', 'GCash Ref', 'Paid', 'Claimed', 'Submitted'],
       ...filtered.map((o) => [
+        `Batch ${o.batch || 1}`,
         `"${[o.first_name, o.middle_initial ? o.middle_initial + '.' : '', o.last_name].filter(Boolean).join(' ')}"`,
-        `"${o.email}"`, `"${o.phone_number}"`, `"${o.sex || ''}"`,
-        `"${o.item_name}"`, `"${o.size || ''}"`,`"${o.back_text || ''}"`,`"${o.payment_method}"`,
-        `"${o.gcash_reference || ''}"`, o.is_paid === true ? 'Paid' : o.is_paid === null ? 'Free' : 'Unpaid', o.is_claimed ? 'Yes' : 'No',
+        `"${o.email || ''}"`,
+        `"${o.phone_number || ''}"`,
+        `"${o.sex || ''}"`,
+        `"${o.item_name || ''}"`,
+        `"${o.size || ''}"`,
+        `"${o.back_text || ''}"`,
+        `"${o.back_number || ''}"`,
+        `"${o.payment_method || ''}"`,
+        `"${o.gcash_reference || ''}"`,
+        o.is_paid === true ? 'Paid' : o.is_paid === null ? 'Free' : 'Unpaid',
+        o.is_claimed ? 'Yes' : 'No',
         `"${new Date(o.created_at).toLocaleString('en-PH')}"`,
       ].join(',')),
     ];
@@ -383,7 +439,8 @@ export default function AdminMerch() {
 
   const getFiltered = () => {
     let f = orders;
-    if (filterItem !== 'all') f = f.filter((o) => o.item_name === filterItem);
+    if (filterBatch !== 'all') f = f.filter((o) => (o.batch || 1) === Number(filterBatch));
+    if (filterItem !== 'all')  f = f.filter((o) => o.item_name === filterItem);
     if (filterPaid === 'paid')   f = f.filter((o) => o.is_paid === true);
     if (filterPaid === 'unpaid') f = f.filter((o) => o.is_paid === false);
     if (filterPaid === 'free')   f = f.filter((o) => o.is_paid === null);
@@ -394,6 +451,15 @@ export default function AdminMerch() {
       );
     }
     return f;
+  };
+
+  const allBatches = [...new Set(orders.map((o) => o.batch || 1))].sort((a, b) => a - b);
+  const maxBatch   = allBatches.length > 0 ? Math.max(...allBatches) : 1;
+
+  const setBatch = async (orderId, batch) => {
+    await supabase.from('merch_preorders').update({ batch }).eq('id', orderId);
+    setOrders((prev) => prev.map((o) => o.id === orderId ? { ...o, batch } : o));
+    if (selectedOrder?.id === orderId) setSelectedOrder((p) => ({ ...p, batch }));
   };
 
   const filteredOrders = getFiltered();
@@ -456,6 +522,30 @@ export default function AdminMerch() {
 
       {tab === 'orders' && (
         <div>
+          {/* Batch filter */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
+            <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#5a6560', marginRight: 4 }}>Batch</span>
+            <button onClick={() => setFilterBatch('all')}
+              style={{ padding: '4px 12px', borderRadius: 100, fontSize: 12, fontWeight: 500, cursor: 'pointer', border: 'none', fontFamily: "'Outfit',sans-serif", transition: 'all 0.15s',
+                background: filterBatch === 'all' ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.05)', color: filterBatch === 'all' ? '#f0f2f1' : '#9aa39d' }}>
+              All
+            </button>
+            {allBatches.map((b) => (
+              <button key={b} onClick={() => setFilterBatch(String(b))}
+                style={{ padding: '4px 12px', borderRadius: 100, fontSize: 12, fontWeight: 500, cursor: 'pointer', border: 'none', fontFamily: "'Outfit',sans-serif", transition: 'all 0.15s',
+                  background: filterBatch === String(b) ? '#22c55e' : 'rgba(255,255,255,0.05)',
+                  color:      filterBatch === String(b) ? '#000'    : '#9aa39d' }}>
+                Batch {b}
+              </button>
+            ))}
+            <button onClick={() => setManagingBatches(true)}
+              style={{ padding: '4px 12px', borderRadius: 100, fontSize: 12, fontWeight: 500, cursor: 'pointer', border: '1px dashed rgba(255,255,255,0.15)', fontFamily: "'Outfit',sans-serif", background: 'transparent', color: '#5a6560', transition: 'all 0.15s' }}
+              onMouseEnter={(e) => e.currentTarget.style.color = '#f0f2f1'}
+              onMouseLeave={(e) => e.currentTarget.style.color = '#5a6560'}>
+              + Manage Batches
+            </button>
+          </div>
+
           {/* Search */}
           <div style={{ position: 'relative', marginBottom: 12 }}>
             <input
@@ -528,15 +618,18 @@ export default function AdminMerch() {
             <div style={{ background: '#131615', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, overflow: 'hidden' }}>
               <div style={{ overflowX: 'auto' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1.8fr 1.4fr 0.6fr 0.9fr 0.85fr 68px', padding: '10px 16px', borderBottom: '1px solid rgba(255,255,255,0.07)', background: 'rgba(255,255,255,0.02)', minWidth: 520 }}>
-                {['Customer', 'Item', 'Size', 'Payment', 'Paid', ''].map((h) => (
+                {['Batch', 'Customer', 'Item', 'Size', 'Payment', 'Paid', ''].map((h) => (
                   <span key={h} style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#5a6560' }}>{h}</span>
                 ))}
               </div>
               {filteredOrders.map((o, i) => (
                 <div key={o.id} className="order-row"
-                  style={{ display: 'grid', gridTemplateColumns: '1.8fr 1.4fr 0.6fr 0.9fr 0.85fr 68px', padding: '11px 16px', alignItems: 'center', cursor: 'pointer', minWidth: 520 }}
+                  style={{ display: 'grid', gridTemplateColumns: '60px 1.8fr 1.4fr 0.6fr 0.9fr 0.85fr 68px', padding: '11px 16px', alignItems: 'center', cursor: 'pointer', minWidth: 580 }}
                   onClick={() => setSelectedOrder(o)}
                 >
+                  <span style={{ fontSize: 11, fontWeight: 700, color: '#22c55e', background: 'rgba(34,197,94,0.1)', borderRadius: 6, padding: '2px 8px', display: 'inline-block', whiteSpace: 'nowrap' }}>
+                    B{o.batch || 1}
+                  </span>
                   <span style={{ fontSize: 13, color: '#f0f2f1', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {[o.first_name, o.middle_initial ? o.middle_initial + '.' : '', o.last_name].filter(Boolean).join(' ')}
                   </span>
@@ -567,7 +660,7 @@ export default function AdminMerch() {
                   </span>
                   <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
                     <button style={{ background: 'transparent', border: 'none', color: '#5a6560', cursor: 'pointer', padding: 4, display: 'flex', borderRadius: 6, transition: 'color 0.15s' }}
-                      onClick={(e) => { e.stopPropagation(); setEditOrderTarget(o); setEditForm({ first_name: o.first_name || '', middle_initial: o.middle_initial || '', last_name: o.last_name || '', sex: o.sex || '', phone_number: o.phone_number || '', email: o.email || '', size: o.size || '', back_text: o.back_text || '', back_number: o.back_number || '', payment_method: o.payment_method || '', gcash_reference: o.gcash_reference || '' }); }}
+                      onClick={(e) => { e.stopPropagation(); setEditOrderTarget(o); setEditForm({ first_name: o.first_name || '', middle_initial: o.middle_initial || '', last_name: o.last_name || '', sex: o.sex || '', phone_number: o.phone_number || '', email: o.email || '', size: o.size || '', back_text: o.back_text || '', back_number: o.back_number || '', payment_method: o.payment_method || '', gcash_reference: o.gcash_reference || '', batch: o.batch || 1 }); }}
                       onMouseEnter={(e) => e.currentTarget.style.color = '#22c55e'}
                       onMouseLeave={(e) => e.currentTarget.style.color = '#5a6560'}>
                       <Pencil size={13} />
@@ -630,6 +723,7 @@ export default function AdminMerch() {
             </div>
             <div style={{ padding: '16px 24px 24px' }}>
               {[
+                ['Batch',     `Batch ${selectedOrder.batch || 1}`],
                 ['Full Name', [selectedOrder.first_name, selectedOrder.middle_initial ? selectedOrder.middle_initial + '.' : '', selectedOrder.last_name].filter(Boolean).join(' ')],
                 ['Email',     selectedOrder.email],
                 ['Phone',     selectedOrder.phone_number],
@@ -663,6 +757,23 @@ export default function AdminMerch() {
               <p style={{ fontSize: 12, color: '#5a6560', marginTop: 3 }}>{editOrderTarget.item_name}</p>
             </div>
             <div style={{ padding: '0 24px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+
+              {/* Batch */}
+              <div>
+                <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#5a6560', marginBottom: 8 }}>Batch</p>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  {Array.from({ length: maxBatch + 1 }, (_, i) => i + 1).map((b) => (
+                    <button key={b} type="button" onClick={() => setEditForm((p) => ({ ...p, batch: b }))}
+                      style={{ minWidth: 44, height: 36, borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: "'Outfit',sans-serif", border: '1px solid', padding: '0 12px', transition: 'all 0.15s',
+                        background: editForm.batch === b ? '#22c55e' : 'rgba(255,255,255,0.05)',
+                        color:      editForm.batch === b ? '#000'    : '#9aa39d',
+                        borderColor: editForm.batch === b ? '#22c55e' : 'rgba(255,255,255,0.1)',
+                      }}>
+                      Batch {b}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
               {/* Name row */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 64px 1fr', gap: 8 }}>
@@ -776,6 +887,64 @@ export default function AdminMerch() {
                   Save Changes
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Manage Batches modal ── */}
+      {managingBatches && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)', padding: 16 }}>
+          <div style={{ background: '#131615', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 16, width: '100%', maxWidth: 480, maxHeight: '80vh', overflowY: 'auto' }}>
+            <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid rgba(255,255,255,0.07)', position: 'sticky', top: 0, background: '#131615' }}>
+              <p style={{ fontFamily: "'Syne',sans-serif", fontWeight: 700, color: '#f0f2f1', fontSize: '1rem', margin: 0 }}>Manage Batches</p>
+              <p style={{ fontSize: 12, color: '#5a6560', marginTop: 3 }}>Move orders between batches or assign a new batch.</p>
+            </div>
+            <div style={{ padding: '16px 24px 24px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {allBatches.map((b) => {
+                const bOrders = orders.filter((o) => (o.batch || 1) === b);
+                return (
+                  <div key={b} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 10, overflow: 'hidden' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: '#22c55e' }}>Batch {b}</span>
+                      <span style={{ fontSize: 12, color: '#5a6560' }}>{bOrders.length} order{bOrders.length !== 1 ? 's' : ''}</span>
+                    </div>
+                    {bOrders.map((o) => {
+                      const fullName = [o.first_name, o.last_name].join(' ');
+                      return (
+                        <div key={o.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 14px', gap: 10 }}>
+                          <div style={{ minWidth: 0 }}>
+                            <p style={{ fontSize: 12, fontWeight: 500, color: '#f0f2f1', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{fullName}</p>
+                            <p style={{ fontSize: 11, color: '#5a6560', margin: 0 }}>{o.item_name}{o.size ? ` · ${o.size}` : ''}</p>
+                          </div>
+                          <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+                            {Array.from({ length: maxBatch + 1 }, (_, i) => i + 1).filter(n => n !== (o.batch || 1)).map((n) => (
+                              <button key={n} onClick={() => setBatch(o.id, n)}
+                                style={{ padding: '3px 8px', borderRadius: 6, fontSize: 11, fontWeight: 600, cursor: 'pointer', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: '#9aa39d', fontFamily: "'Outfit',sans-serif", transition: 'all 0.15s' }}
+                                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(34,197,94,0.1)'; e.currentTarget.style.color = '#22c55e'; }}
+                                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = '#9aa39d'; }}>
+                                → B{n}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })}
+              <button onClick={() => {
+                  const next = maxBatch + 1;
+                  // Just create the batch by acknowledging it exists — actual assignment is per order
+                  setOrders((prev) => prev); // trigger re-render to show new batch pill
+                  setManagingBatches(false);
+                  // The new batch will appear once an order is assigned to it
+                  alert(`Batch ${next} created. Use the edit button on orders to assign them to Batch ${next}.`);
+                }}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px', borderRadius: 10, border: '1px dashed rgba(34,197,94,0.3)', background: 'rgba(34,197,94,0.04)', color: '#22c55e', cursor: 'pointer', fontFamily: "'Outfit',sans-serif", fontSize: 13, fontWeight: 600, transition: 'all 0.2s' }}>
+                + Create Batch {maxBatch + 1}
+              </button>
+              <button onClick={() => setManagingBatches(false)} className="adm-btn-ghost" style={{ width: '100%', justifyContent: 'center' }}>Done</button>
             </div>
           </div>
         </div>
