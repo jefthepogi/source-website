@@ -165,12 +165,12 @@ function ClaimingTab({ orders, onToggleClaim }) {
                 <button
                   onClick={(e) => onToggleClaim(e, o)}
                   style={{ flexShrink: 0, padding: '7px 14px', borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: "'Outfit',sans-serif", border: '1px solid', transition: 'all 0.2s',
-                    background: o.is_claimed ? 'transparent' : '#22c55e',
-                    color:      o.is_claimed ? '#5a6560'    : '#000',
-                    borderColor: o.is_claimed ? 'rgba(255,255,255,0.1)' : '#22c55e',
+                    background: o.is_claimed ? 'rgba(251,191,36,0.08)' : '#22c55e',
+                    color:      o.is_claimed ? '#fbbf24'               : '#000',
+                    borderColor: o.is_claimed ? 'rgba(251,191,36,0.3)' : '#22c55e',
                   }}
-                  onMouseEnter={(e) => !o.is_claimed && (e.currentTarget.style.background = '#28d468')}
-                  onMouseLeave={(e) => !o.is_claimed && (e.currentTarget.style.background = '#22c55e')}
+                  onMouseEnter={(e) => { if (o.is_claimed) { e.currentTarget.style.background = 'rgba(251,191,36,0.15)'; } else { e.currentTarget.style.background = '#28d468'; } }}
+                  onMouseLeave={(e) => { if (o.is_claimed) { e.currentTarget.style.background = 'rgba(251,191,36,0.08)'; } else { e.currentTarget.style.background = '#22c55e'; } }}
                 >
                   {o.is_claimed ? 'Undo' : 'Mark Claimed'}
                 </button>
@@ -338,7 +338,25 @@ export default function AdminMerch() {
   const [togglingPaid,      setTogglingPaid]      = useState(null);
   const [filterBatch,       setFilterBatch]       = useState('all');
   const [managingBatches,   setManagingBatches]   = useState(false);
-  const [newBatchTarget,    setNewBatchTarget]    = useState(null);
+  const [toast,             setToast]             = useState(null);
+
+  const showToast = useCallback((message, type = 'info') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  }, []);
+
+  // Escape key closes any open modal
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key !== 'Escape') return;
+      if (editOrderTarget)   { setEditOrderTarget(null); return; }
+      if (managingBatches)   { setManagingBatches(false); return; }
+      if (deleteOrderTarget) { setDeleteOrderTarget(null); return; }
+      if (selectedOrder)     { setSelectedOrder(null); return; }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [editOrderTarget, managingBatches, deleteOrderTarget, selectedOrder]);
 
   const fetchItems = useCallback(async () => {
     setLoadingItems(true);
@@ -647,14 +665,15 @@ export default function AdminMerch() {
                       {o.payment_method}
                     </span>
                   </span>
-                  <span onClick={(e) => e.stopPropagation()}>
+                  <span onClick={(e) => e.stopPropagation()} style={{ position: 'relative' }}>
                     <button className="paid-toggle"
                       onClick={(e) => togglePaid(e, o)}
                       disabled={togglingPaid === o.id}
+                      title={o.is_paid === true ? 'Click to mark Free' : o.is_paid === null ? 'Click to mark Unpaid' : 'Click to mark Paid'}
                       style={{ opacity: togglingPaid === o.id ? 0.5 : 1,
                         background: o.is_paid === true ? 'rgba(34,197,94,0.12)' : o.is_paid === null ? 'rgba(167,139,250,0.12)' : 'rgba(255,255,255,0.05)',
                         color: o.is_paid === true ? '#22c55e' : o.is_paid === null ? '#c4b5fd' : '#5a6560' }}>
-                      {o.is_paid === true ? <CheckCircle size={13} /> : o.is_paid === null ? <Circle size={13} /> : <Circle size={13} />}
+                      {o.is_paid === true ? <CheckCircle size={13} /> : <Circle size={13} />}
                       {o.is_paid === true ? 'Paid' : o.is_paid === null ? 'Free' : 'Unpaid'}
                     </button>
                   </span>
@@ -706,6 +725,13 @@ export default function AdminMerch() {
                 </button>
               </div>
               <div style={{ display: 'flex', gap: 6 }}>
+                <button
+                  onClick={() => { setEditOrderTarget(selectedOrder); setEditForm({ first_name: selectedOrder.first_name || '', middle_initial: selectedOrder.middle_initial || '', last_name: selectedOrder.last_name || '', sex: selectedOrder.sex || '', phone_number: selectedOrder.phone_number || '', email: selectedOrder.email || '', size: selectedOrder.size || '', back_text: selectedOrder.back_text || '', back_number: selectedOrder.back_number || '', payment_method: selectedOrder.payment_method || '', gcash_reference: selectedOrder.gcash_reference || '', batch: selectedOrder.batch || 1 }); setSelectedOrder(null); }}
+                  style={{ background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)', color: '#22c55e', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 7, fontSize: 12, fontFamily: "'Outfit',sans-serif", fontWeight: 500, transition: 'background 0.15s' }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(34,197,94,0.14)'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(34,197,94,0.08)'}>
+                  <Pencil size={13} /> Edit
+                </button>
                 <button
                   onClick={() => { setDeleteOrderTarget(selectedOrder); setSelectedOrder(null); }}
                   style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#f87171', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 7, fontSize: 12, fontFamily: "'Outfit',sans-serif", fontWeight: 500, transition: 'background 0.15s' }}
@@ -935,11 +961,8 @@ export default function AdminMerch() {
               })}
               <button onClick={() => {
                   const next = maxBatch + 1;
-                  // Just create the batch by acknowledging it exists — actual assignment is per order
-                  setOrders((prev) => prev); // trigger re-render to show new batch pill
                   setManagingBatches(false);
-                  // The new batch will appear once an order is assigned to it
-                  alert(`Batch ${next} created. Use the edit button on orders to assign them to Batch ${next}.`);
+                  showToast(`Batch ${next} created. Edit any order to assign it to Batch ${next}.`, 'success');
                 }}
                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px', borderRadius: 10, border: '1px dashed rgba(34,197,94,0.3)', background: 'rgba(34,197,94,0.04)', color: '#22c55e', cursor: 'pointer', fontFamily: "'Outfit',sans-serif", fontSize: 13, fontWeight: 600, transition: 'all 0.2s' }}>
                 + Create Batch {maxBatch + 1}
@@ -972,6 +995,15 @@ export default function AdminMerch() {
                 Delete
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast notification */}
+      {toast && (
+        <div style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 100, pointerEvents: 'none' }}>
+          <div style={{ background: toast.type === 'success' ? 'rgba(34,197,94,0.15)' : 'rgba(255,255,255,0.08)', border: `1px solid ${toast.type === 'success' ? 'rgba(34,197,94,0.3)' : 'rgba(255,255,255,0.12)'}`, borderRadius: 10, padding: '10px 18px', fontSize: 13, fontWeight: 500, color: toast.type === 'success' ? '#22c55e' : '#f0f2f1', fontFamily: "'Outfit',sans-serif", backdropFilter: 'blur(8px)', whiteSpace: 'nowrap', boxShadow: '0 4px 24px rgba(0,0,0,0.4)' }}>
+            {toast.message}
           </div>
         </div>
       )}
