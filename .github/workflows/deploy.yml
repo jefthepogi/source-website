@@ -3,7 +3,7 @@ name: Build and Deploy React Vite App
 on:
   push:
     branches:
-      - main # Triggers workflow on push to main branch
+      - master # Triggers workflow on push to main branch
 
 jobs:
   build-and-deploy:
