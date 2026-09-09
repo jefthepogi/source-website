@@ -92,7 +92,7 @@ export default function InitiativesSection() {
               {initiativesData.map((initiative, index) => (
                 <div key={index} style={{ height: sliderHeight || 340, position: 'relative' }}>
                   <img
-                    src={require(`../assets/initiatives-img/${index + 1}.jpg`)}
+                    src={new URL(`../assets/initiatives-img/${index + 1}.jpg`, import.meta.url).href}
                     alt={initiative.title}
                     style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                     loading="lazy"
