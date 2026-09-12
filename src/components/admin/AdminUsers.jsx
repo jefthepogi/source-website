@@ -76,8 +76,8 @@ export default function AdminUsers() {
     try {
       // Call GoTrue admin endpoint directly with service role key.
       // email_confirm: true skips confirmation email entirely.
-      const SUPABASE_URL = 'https://supabase.rinexusgames.com';
-      const SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoic2VydmljZV9yb2xlIiwiaXNzIjoic3VwYWJhc2UiLCJpYXQiOjE3MDAwMDAwMDAsImV4cCI6MTkwMDAwMDAwMH0.y6VM75fn9zvnEZ0dGtM6VWa9D440mjafs_48Xiij0pw';
+      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+      const SERVICE_KEY = import.meta.env.VITE_SUPABASE_SECRET_KEY;
 
       const res = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, {
         method: 'POST',
