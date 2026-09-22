@@ -4,11 +4,13 @@ import { supabase } from '../../lib/supabase';
 import { Modal, DeleteConfirm } from './CRUDTable';
 import { ChevronUp, ChevronDown, GripVertical } from 'lucide-react';
 
+const IMAGE_KIT_ROOT_DIRECTORY = "lsu-source-web";
+
 const FIELDS = [
   { name: 'name',      label: 'Full Name',            type: 'text',   required: true },
   { name: 'position',  label: 'Position',             type: 'text',   required: true, placeholder: 'e.g. President' },
   { name: 'category',  label: 'Category / Committee', type: 'text',   required: true, placeholder: 'e.g. Executive Officers' },
-  { name: 'image_url', label: 'Photo',                type: 'image',  folder: 'officers'},
+  { name: 'image_url', label: 'Photo',                type: 'image'   },
   { name: 'published', label: 'Published',            type: 'boolean' },
   // sort_order is managed via drag-and-drop, not a manual field
 ];
@@ -277,7 +279,7 @@ export default function AdminOfficers() {
           onSave={handleSave}
           onClose={() => { setShowAdd(false); setEditRow(null); }}
           saving={saving}
-          imageFolder="officers"
+          imageFolder={`${IMAGE_KIT_ROOT_DIRECTORY}/officers`}
         />
       )}
 

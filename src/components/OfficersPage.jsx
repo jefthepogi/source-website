@@ -4,7 +4,7 @@ import { getOptimizedImageUrl } from '../utils/imagekit';
 import HeaderBgImage from '../assets/officer_header-bg.jpg';
 import officerStructure from '../assets/officer-structure.png';
 
-const FALLBACK_IMAGE = 'https://placehold.co/300x300/191c1a/22c55e?text=Error';
+const FALLBACK_IMAGE = 'https://placehold.co/300x300/191c1a/22c55e?text=PHOTO';
 
 export default function OfficersPage() {
   const [categories, setCategories] = useState([]);
@@ -145,12 +145,13 @@ function CategorySection({ category, officers, delay }) {
             <div style={{ aspectRatio: '1', overflow: 'hidden', background: '#191c1a' }}>
               <img
               // using ImageKit API to host the images made easy with the helper function
-                src={getOptimizedImageUrl(o.image_url, { width: 399 })}
+                src={getOptimizedImageUrl(o.image_url, { width: 300 })}
                 alt={o.name}
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 loading="lazy"
                 onError={(e) => {
                   e.currentTarget.src = FALLBACK_IMAGE;
+                  console.log(e);
                 }}
               />
             </div>

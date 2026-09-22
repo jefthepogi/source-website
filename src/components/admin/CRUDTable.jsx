@@ -1,16 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Pencil, Trash2, Plus, X, Check, AlertTriangle, Upload, Link, Image } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import '../../admin.css';
 
 // DS is kept as a no-op export so existing imports don't break
 export const DS = '';
-
-// ── Image Upload Field ────────────────────────────────────────────────────────
-import React, { useState, useEffect, useRef } from 'react';
-import { supabase } from '../lib/supabase'; // Ensure this points to your supabase client
-import { Upload, Link, Image } from 'lucide-react'; // Or your icon library imports
-
 
 export function ImageUploadField({ value, onChange, folder = '' }) {
   const [mode,      setMode]      = useState('upload');
@@ -52,7 +46,7 @@ export function ImageUploadField({ value, onChange, folder = '' }) {
       }
 
       // 3. Send upload request directly to ImageKit API
-      const response = await fetch('https://upload.imagekit.i/aopi/v1/files/upload', {
+      const response = await fetch('https://upload.imagekit.io/api/v1/files/upload', {
         method: 'POST',
         body: formData,
       });
