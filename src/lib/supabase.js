@@ -4,17 +4,14 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
+// Add a quick safeguard check to warn you if variables are missing
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error("Supabase Initialization Error: Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY.");
+}
+
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  db: { schema: 'source' },
   auth: {
-    // Prevent Supabase from triggering a session refresh every time
-    // the browser tab regains focus — this was causing loading flashes.
-    autoRefreshToken: true,
-    persistSession: true,
+    // Keeps your UI smooth for standard email/password admin logins
     detectSessionInUrl: false,
-  },
-  realtime: {
-    // Disable realtime heartbeat reconnects on tab focus
-    params: { eventsPerSecond: 2 },
-  },
+  }
 });

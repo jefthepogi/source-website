@@ -1,22 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { getOptimizedImageUrl } from '../utils/imagekit';
 import HeaderBgImage from '../assets/officer_header-bg.jpg';
 import officerStructure from '../assets/officer-structure.png';
 
-const FALLBACK_IMAGE = 'https://placehold.co/300x300/191c1a/22c55e?text=Photo';
+const FALLBACK_IMAGE = 'https://placehold.co/300x300/191c1a/22c55e?text=Error';
 
 export default function OfficersPage() {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState(null);
-  const [academicYear, setAcademicYear] = useState('2025–2026');
+  
+  // Set default to the current 2026-2027 academic year 
+  const [academicYear, setAcademicYear] = useState('2026–2027');
 
   useEffect(() => {
     let isMounted = true;
 
+    // Queries the public.officers table schema
     supabase
       .from('officers')
-      .select('*')
+      .select('id, name, position, image_url, category, academic_year')
       .eq('published', true)
       .order('sort_order', { ascending: true })
       .then(({ data, error }) => {
@@ -26,9 +30,11 @@ export default function OfficersPage() {
           console.error('Supabase fetch error:', error);
           setFetchError(error.message);
         } else if (data) {
+          // Group officers by the 'category' text column
           const grouped = data.reduce((acc, o) => {
-            if (!acc[o.category]) acc[o.category] = [];
-            acc[o.category].push(o);
+            const cat = o.category || 'Uncategorized';
+            if (!acc[cat]) acc[cat] = [];
+            acc[cat].push(o);
             return acc;
           }, {});
 
@@ -39,6 +45,7 @@ export default function OfficersPage() {
             }))
           );
 
+          // Dynamically set academic year from the first published record
           if (data.length > 0 && data[0].academic_year) {
             setAcademicYear(data[0].academic_year);
           }
@@ -80,7 +87,11 @@ export default function OfficersPage() {
       <div style={{ padding: '80px 11vw' }}>
         {loading ? (
           <div style={{ display: 'flex', justifyContent: 'center', padding: '80px 0' }}>
-            <div style={{ width: 28, height: 28, border: '2px solid #22c55e', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+            {/* Swapped to SVG for cleaner rendering without injected inline <style> tags */}
+            <svg style={{ width: 28, height: 28, color: '#22c55e', animation: 'spin 1s linear infinite' }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" strokeOpacity="0.25"></circle>
+              <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
             <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
           </div>
         ) : fetchError ? (
@@ -129,10 +140,12 @@ function CategorySection({ category, officers, delay }) {
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%,160px), 1fr))', gap: 16 }}>
         {officers.map((o) => (
-          <div key={o.id || o.name} className="officer-card">
+          // o.id utilizes the UUID primary key from the schema
+          <div key={o.id} className="officer-card">
             <div style={{ aspectRatio: '1', overflow: 'hidden', background: '#191c1a' }}>
               <img
-                src={o.image_url || FALLBACK_IMAGE}
+              // using ImageKit API to host the images made easy with the helper function
+                src={getOptimizedImageUrl(o.image_url, { width: 399 })}
                 alt={o.name}
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 loading="lazy"

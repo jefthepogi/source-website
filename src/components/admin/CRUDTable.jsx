@@ -7,25 +7,68 @@ import '../../admin.css';
 export const DS = '';
 
 // ── Image Upload Field ────────────────────────────────────────────────────────
-export function ImageUploadField({ value, onChange, bucket = 'images', folder = '' }) {
+import React, { useState, useEffect, useRef } from 'react';
+import { supabase } from '../lib/supabase'; // Ensure this points to your supabase client
+import { Upload, Link, Image } from 'lucide-react'; // Or your icon library imports
+
+
+export function ImageUploadField({ value, onChange, folder = '' }) {
   const [mode,      setMode]      = useState('upload');
   const [uploading, setUploading] = useState(false);
   const [dragOver,  setDragOver]  = useState(false);
   const [preview,   setPreview]   = useState(value || '');
   const inputRef = useRef();
 
+  // Sync preview when modal opens with existing record data
+  useEffect(() => {
+    setPreview(value || '');
+  }, [value]);
+
   const uploadFile = async (file) => {
     if (!file || !file.type.startsWith('image/')) return;
     setUploading(true);
+
     try {
-      const ext  = file.name.split('.').pop();
-      const path = `${folder ? folder + '/' : ''}${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
-      const { error } = await supabase.storage.from(bucket).upload(path, file, { upsert: true });
-      if (error) throw error;
-      const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(path);
-      setPreview(publicUrl);
-      onChange('image_url', publicUrl);
+      // 1. Fetch auth signature from Supabase Edge Function
+      const { data: authData, error: authError } = await supabase.functions.invoke('imagekit-auth');
+      if (authError || !authData) {
+        throw new Error(authError?.message || 'Failed to authenticate with ImageKit Edge Function.');
+      }
+
+      const { token, expire, signature, publicKey } = authData;
+
+      // 2. Build FormData payload for ImageKit
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('fileName', `${Date.now()}_${file.name}`);
+      formData.append('publicKey', publicKey);
+      formData.append('signature', signature);
+      formData.append('expire', expire);
+      formData.append('token', token);
+      
+      if (folder) {
+        const cleanFolder = folder.startsWith('/') ? folder : `/${folder}`;
+        formData.append('folder', cleanFolder);
+      }
+
+      // 3. Send upload request directly to ImageKit API
+      const response = await fetch('https://upload.imagekit.i/aopi/v1/files/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const uploadResult = await response.json();
+      if (!response.ok) {
+        throw new Error(uploadResult.message || 'ImageKit upload failed.');
+      }
+
+      // 4. Update preview state and trigger CRUD form onChange callback
+      const imageUrl = uploadResult.url;
+      setPreview(imageUrl);
+      onChange('image_url', imageUrl);
+
     } catch (err) {
+      console.error('ImageKit Upload Error:', err);
       alert('Upload failed: ' + err.message);
     } finally {
       setUploading(false);
@@ -33,7 +76,8 @@ export function ImageUploadField({ value, onChange, bucket = 'images', folder = 
   };
 
   const handleDrop = (e) => {
-    e.preventDefault(); setDragOver(false);
+    e.preventDefault(); 
+    setDragOver(false);
     const file = e.dataTransfer.files[0];
     if (file) uploadFile(file);
   };
@@ -42,10 +86,17 @@ export function ImageUploadField({ value, onChange, bucket = 'images', folder = 
     <div>
       {/* Mode toggle */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
-        {[{ id: 'upload', icon: <Upload size={12} />, label: 'Upload' }, { id: 'url', icon: <Link size={12} />, label: 'Paste URL' }].map(({ id, icon, label }) => (
-          <button key={id} type="button" onClick={() => setMode(id)}
+        {[
+          { id: 'upload', icon: <Upload size={12} />, label: 'Upload' }, 
+          { id: 'url', icon: <Link size={12} />, label: 'Paste URL' }
+        ].map(({ id, icon, label }) => (
+          <button 
+            key={id} 
+            type="button" 
+            onClick={() => setMode(id)}
             className={`adm-pill ${mode === id ? 'active' : ''}`}
-            style={{ fontSize: 12 }}>
+            style={{ fontSize: 12 }}
+          >
             {icon} {label}
           </button>
         ))}
@@ -63,7 +114,7 @@ export function ImageUploadField({ value, onChange, bucket = 'images', folder = 
             {uploading ? (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
                 <div className="spin-anim" style={{ width: 22, height: 22, border: '2px solid var(--accent)', borderTopColor: 'transparent', borderRadius: '50%' }} />
-                <span style={{ fontSize: 12, color: 'var(--text-2)' }}>Uploading…</span>
+                <span style={{ fontSize: 12, color: 'var(--text-2)' }}>Uploading to CDN…</span>
               </div>
             ) : preview ? (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
@@ -74,30 +125,46 @@ export function ImageUploadField({ value, onChange, bucket = 'images', folder = 
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
                 <Image size={28} style={{ color: 'var(--text-3)' }} />
                 <span style={{ fontSize: 13, color: 'var(--text-2)', fontWeight: 500 }}>Click or drag & drop to upload</span>
-                <span style={{ fontSize: 11, color: 'var(--text-3)' }}>JPG, PNG, WEBP — stored in Supabase</span>
+                <span style={{ fontSize: 11, color: 'var(--text-3)' }}>JPG, PNG, WEBP — optimized via ImageKit CDN</span>
               </div>
             )}
           </div>
-          <input ref={inputRef} type="file" accept="image/*" style={{ display: 'none' }}
-            onChange={(e) => e.target.files[0] && uploadFile(e.target.files[0])} />
+          <input 
+            ref={inputRef} 
+            type="file" 
+            accept="image/*" 
+            style={{ display: 'none' }}
+            onChange={(e) => e.target.files[0] && uploadFile(e.target.files[0])} 
+          />
         </>
       ) : (
-        <input className="adm-input" type="text" placeholder="https://..."
+        <input 
+          className="adm-input" 
+          type="text" 
+          placeholder="https://ik.imagekit.io/..."
           value={value || ''}
-          onChange={(e) => { setPreview(e.target.value); onChange('image_url', e.target.value); }} />
+          onChange={(e) => { 
+            setPreview(e.target.value); 
+            onChange('image_url', e.target.value); 
+          }} 
+        />
       )}
     </div>
   );
 }
 
 // ── Generic field renderer ────────────────────────────────────────────────────
+// Categorizes your input field based on its assigned type
 export function FieldInput({ field, value, onChange, imageFolder }) {
+  // for uploading images
   if (field.type === 'image') {
     return <ImageUploadField value={value} onChange={onChange} folder={imageFolder || field.folder || ''} bucket={field.bucket || 'images'} />;
   }
+  // For general text
   if (field.type === 'textarea') {
     return <textarea className="adm-input" value={value ?? ''} onChange={(e) => onChange(field.name, e.target.value)} rows={3} placeholder={field.placeholder || ''} style={{ resize: 'none' }} />;
   }
+  // For options
   if (field.type === 'select') {
     return (
       <select className="adm-input" value={value ?? ''} onChange={(e) => onChange(field.name, e.target.value)} style={{ cursor: 'pointer' }}>

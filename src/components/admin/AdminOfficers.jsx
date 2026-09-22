@@ -8,7 +8,7 @@ const FIELDS = [
   { name: 'name',      label: 'Full Name',            type: 'text',   required: true },
   { name: 'position',  label: 'Position',             type: 'text',   required: true, placeholder: 'e.g. President' },
   { name: 'category',  label: 'Category / Committee', type: 'text',   required: true, placeholder: 'e.g. Executive Officers' },
-  { name: 'image_url', label: 'Photo',                type: 'image',  folder: 'officers', bucket: 'images' },
+  { name: 'image_url', label: 'Photo',                type: 'image',  folder: 'officers'},
   { name: 'published', label: 'Published',            type: 'boolean' },
   // sort_order is managed via drag-and-drop, not a manual field
 ];
@@ -221,7 +221,10 @@ export default function AdminOfficers() {
 
   const fetchData = async () => {
     setLoading(true);
-    const { data } = await supabase.from('officers').select('*').order('sort_order');
+    const { data } = await supabase
+      .from('officers')
+      .select('*')
+      .order('sort_order', { ascending: true });
     setRows(data || []);
     setLoading(false);
   };

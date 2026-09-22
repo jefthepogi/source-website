@@ -74,39 +74,25 @@ export default function AdminUsers() {
 
     setInviting(true);
     try {
-      // Call GoTrue admin endpoint directly with service role key.
-      // email_confirm: true skips confirmation email entirely.
-      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-      const SERVICE_KEY = import.meta.env.VITE_SUPABASE_SECRET_KEY;
-
-      const res = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, {
+      // Call your new secure Cloudflare Pages Function
+      const res = await fetch('/api/create-admin', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'apikey': SERVICE_KEY,
-          'Authorization': `Bearer ${SERVICE_KEY}`,
         },
         body: JSON.stringify({
           email: inviteEmail.trim(),
           password: invitePassword,
-          email_confirm: true,
-          user_metadata: { role: inviteRole },
+          role: inviteRole,
+          permissions: invitePerms,
         }),
       });
 
-      const resText = await res.text();
-      let authData;
-      try { authData = JSON.parse(resText); } catch { throw new Error(`Server error: ${resText}`); }
-      if (!res.ok) throw new Error(authData.msg || authData.message || authData.error_description || JSON.stringify(authData));
-
-      // Step 2: Record in admin_users table with permissions
-      const { error: dbErr } = await supabase.from('admin_users').insert([{
-        user_id: authData.id,
-        email: inviteEmail.trim().toLowerCase(),
-        role: inviteRole,
-        permissions: invitePerms,
-      }]);
-      if (dbErr) throw dbErr;
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to create admin user.');
+      }
 
       setInviteSuccess(`Admin account created for ${inviteEmail.trim()}. They can log in immediately at /admin.`);
       setInviteEmail('');
