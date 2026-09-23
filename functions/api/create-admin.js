@@ -1,6 +1,22 @@
 export async function onRequestPost(context) {
     const { request, env } = context;
-  
+
+    // 1. Instantly approve CORS preflight requests (The 405 Fix)
+    if (request.method === "OPTIONS") {
+      return new Response(null, {
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "POST, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type",
+        }
+      });
+    }
+
+    // 2. Reject anything that isn't a POST request
+    if (request.method !== "POST") {
+      return new Response("Method not allowed", { status: 405 });
+    }
+    
     try {
       // 1. Parse the incoming request from your React frontend
       const { email, password, role, permissions } = await request.json();

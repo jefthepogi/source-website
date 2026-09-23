@@ -7,11 +7,12 @@
 
 # testing
 /coverage
-.wrangler
 /dist
 .env
 .env.local
 .env.*
+.wrangler
+.dev.vars
 
 # production
 /build
