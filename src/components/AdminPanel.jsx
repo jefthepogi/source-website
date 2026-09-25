@@ -3,8 +3,7 @@ import { supabase } from '../lib/supabase';
 import '../admin.css'; // ← single shared stylesheet
 import {
   LayoutDashboard, Newspaper, CalendarDays, Users, ShoppingBag,
-  Link2, MessageSquare, LogOut, Menu, Shield, TrendingUp, X
-} from 'lucide-react';
+  Link2, MessageSquare, LogOut, Menu, Shield, TrendingUp, X, } from 'lucide-react';
 import AdminNews      from './admin/AdminNews';
 import AdminEvents    from './admin/AdminEvents';
 import AdminOfficers  from './admin/AdminOfficers';
@@ -12,6 +11,7 @@ import AdminMerch     from './admin/AdminMerch';
 import AdminRedirects from './admin/AdminRedirects';
 import AdminContacts  from './admin/AdminContacts';
 import AdminUsers     from './admin/AdminUsers';
+import PasswordField  from '../utils/toggle_password';
 
 // ── Context ───────────────────────────────────────────────────────────────────
 const AdminContext = createContext(null);
@@ -33,8 +33,25 @@ const ALL_NAV = [
 function LoginScreen() {
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState('');
+  
+  const handleTogglePassword = (e) => {
+    // e.currentTarget always aims at the element where the onClick attribute is defined as oppose to -
+    // e.target which gets the sub-element the cursor clicked on
+    const wrapper_div = e.currentTarget.parentNode;
+    const password_input = wrapper_div.querySelector('.adm-password-input');
+
+    setShowPassword(!showPassword);
+
+    if (showPassword) {
+      password_input.type = "password"
+    } else {
+      password_input.type = "text"
+    }
+    
+  }
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -84,7 +101,7 @@ function LoginScreen() {
             </div>
             <div>
               <label className="adm-label">Password</label>
-              <input className="adm-input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required placeholder="••••••••" />
+              <PasswordField password={password} setPassword={setPassword} showPassword={showPassword} setShowPassword={setShowPassword}/>
             </div>
             <button type="submit" disabled={loading} className="adm-btn-primary" style={{ marginTop: 4, width: '100%' }}>
               {loading ? <div className="spin-anim" style={{ width: 16, height: 16, border: '2px solid rgba(0,0,0,0.4)', borderTopColor: '#000', borderRadius: '50%' }} /> : 'Sign In'}

@@ -25,9 +25,11 @@ export default function AdminUsers() {
   const [showInvite, setShowInvite] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
 
+
   // Invite form state
   const [inviteEmail, setInviteEmail] = useState('');
   const [invitePassword, setInvitePassword] = useState('');
+  const [showInvitePassword, setInviteShowPassword] = useState(false);
   const [inviteRole, setInviteRole] = useState('editor');
   const [invitePerms, setInvitePerms] = useState(['news', 'events']);
   const [inviting, setInviting] = useState(false);
@@ -63,6 +65,22 @@ export default function AdminUsers() {
       prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]
     );
   };
+
+  const handleTogglePassword = (e) => {
+    // e.currentTarget always aims at the element where the onClick attribute is defined as oppose to -
+    // e.target which gets the sub-element the cursor clicked on
+    const wrapper_div = e.currentTarget.parentNode;
+    const password_input = wrapper_div.querySelector('.adm-password-input');
+
+    setShowPassword(!showPassword);
+
+    if (showPassword) {
+      password_input.type = "password"
+    } else {
+      password_input.type = "text"
+    }
+    
+  }
 
   const handleInvite = async () => {
     setInviteError('');
@@ -273,6 +291,7 @@ export default function AdminUsers() {
 
                 <div>
                   <label className="adm-label">Password</label>
+                  {/* automate with helper function PasswordField */}
                   <input className="invite-input" type="password" placeholder="Min. 8 characters" value={invitePassword} onChange={(e) => setInvitePassword(e.target.value)} />
                   <p style={{ fontSize:11, color:'#5a6560', marginTop:5 }}>Share this password with the new admin securely. They can change it later.</p>
                 </div>
