@@ -101,7 +101,9 @@ function LoginScreen() {
             </div>
             <div>
               <label className="adm-label">Password</label>
-              <PasswordField password={password} setPassword={setPassword} showPassword={showPassword} setShowPassword={setShowPassword}/>
+              <PasswordField>
+                <input className="adm-password-input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required placeholder="••••••••" />
+              </PasswordField>
             </div>
             <button type="submit" disabled={loading} className="adm-btn-primary" style={{ marginTop: 4, width: '100%' }}>
               {loading ? <div className="spin-anim" style={{ width: 16, height: 16, border: '2px solid rgba(0,0,0,0.4)', borderTopColor: '#000', borderRadius: '50%' }} /> : 'Sign In'}

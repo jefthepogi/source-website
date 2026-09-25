@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import '../../admin.css';
 import { supabase } from '../../lib/supabase';
 import { UserPlus, Trash2, Shield, ShieldOff, RefreshCw, X, Check, Key, AlertCircle } from 'lucide-react';
+import PasswordField from '../../utils/toggle_password';
 
 const ALL_SECTIONS = [
   { id: 'news',      label: 'News' },
@@ -291,10 +292,11 @@ export default function AdminUsers() {
 
                 <div>
                   <label className="adm-label">Password</label>
-                  {/* automate with helper function PasswordField */}
-                  <input className="invite-input" type="password" placeholder="Min. 8 characters" value={invitePassword} onChange={(e) => setInvitePassword(e.target.value)} />
+                  <PasswordField>
+                    <input className="invite-input" type="password" placeholder="Min. 8 characters" value={invitePassword} onChange={(e) => setInvitePassword(e.target.value)} />
+                  </PasswordField>
                   <p style={{ fontSize:11, color:'#5a6560', marginTop:5 }}>Share this password with the new admin securely. They can change it later.</p>
-                </div>
+                </div>  
 
                 <div>
                   <label className="adm-label">Role Preset</label>
