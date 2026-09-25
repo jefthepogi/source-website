@@ -13,9 +13,8 @@ A modern, high-performance web application built for the SOURCE student organiza
 
 Ensure the following dependencies are installed on your local development environment:
 
-* [Node.js](https://www.google.com/search?q=https://nodejs.org/&utm_source=gemini) (v20.0.0 or later recommended)
+* [Node.js](https://www.google.com/search?q=https://nodejs.org/&utm_source=gemini) (v26.x.x^)
 * npm (comes with Node.js)
-* [Wrangler CLI](https://www.google.com/search?q=https://developers.cloudflare.com/workers/wrangler/install-and-update/&utm_source=gemini) (required for testing Cloudflare Functions locally)
 
 ## Environment Configuration
 
@@ -61,14 +60,13 @@ npm install
 
 
 3. **Run the standard frontend development server:**
-If you are only working on UI components and do not need to test backend API endpoints (Cloudflare Functions), run standard Vite:
+With the latest node (v26), Cloudflare plugin is now embedded within the Vite ecosystem, which makes testing backend API endpoints like Cloudflare Functions seamless. Run standard Vite script:
 ```bash
 npm run dev
-
 ```
 
 
-The application will be available at `http://localhost:5173`.
+The application will typically be available at `http://localhost:5173`.
 4. **Run the full-stack environment (Frontend + Cloudflare Functions):**
 To test features like the Admin Invitation system that rely on server-side Cloudflare Functions, you must use Wrangler to simulate the Cloudflare edge environment.
 ```bash
@@ -78,7 +76,7 @@ npx wrangler pages dev dist
 ```
 
 
-Wrangler will host the built static site and execute scripts located in the `/functions` directory simultaneously.
+Cloudflare will host the built static site and execute scripts located in the `/functions` directory simultaneously.
 
 ## Database Schema Setup
 
@@ -126,6 +124,6 @@ ON public.admin_users FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
 This project is configured for automated deployments via Cloudflare Pages.
 
-1. Push changes to the `main` branch.
+1. Push changes to the `master` branch.
 2. Cloudflare will automatically trigger a build using the command `npm run build` and deploy the output from the `dist` directory.
-3. Ensure all environment variables (including `SUPABASE_SERVICE_ROLE_KEY` as an encrypted secret) are configured in the Cloudflare Pages Dashboard under **Settings > Environment variables**.
+3. Ensure all environment variables (including `SUPABASE_SERVICE_ROLE_KEY` as an encrypted secret) are configured in the Cloudflare Pages Dashboard.
