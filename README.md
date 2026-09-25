@@ -67,13 +67,6 @@ npm run dev
 
 
 The application will typically be available at `http://localhost:5173`.
-4. **Run the full-stack environment (Frontend + Cloudflare Functions):**
-To test features like the Admin Invitation system that rely on server-side Cloudflare Functions, you must use Wrangler to simulate the Cloudflare edge environment.
-```bash
-npm run build
-npx wrangler pages dev dist
-
-```
 
 
 Cloudflare will host the built static site and execute scripts located in the `/functions` directory simultaneously.
