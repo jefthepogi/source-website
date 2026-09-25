@@ -26,7 +26,7 @@
     "react-hot-toast": "^2.5.2",
     "react-icons": "^5.3.0",
     "react-router-dom": "^6.26.1",
-    "react-slick": "^0.30.2",
+    "react-slick": "^0.30.3",
     "slick-carousel": "^1.8.1",
     "tailwindcss": "^3.4.10",
     "web-vitals": "^2.1.4"
@@ -49,5 +49,10 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "allowScripts": {
+    "esbuild@0.28.1": true,
+    "workerd@1.20260923.1": true,
+    "core-js@3.50.0": true
   }
 }

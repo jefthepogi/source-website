@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 
 // PasswordField Wrapper
 export default function PasswordField({ children }) {
+    
+    const [showPassword, setShowPassword] = useState(false);
 
     const handleTogglePassword = (e) => {
         // e.currentTarget always aims at the element where the onClick attribute is defined as oppose to -
@@ -26,6 +28,6 @@ export default function PasswordField({ children }) {
             {showPassword ? <Eye /> : <EyeOff />}
             </button>
         </div>
-    )
+    );
 
 }
