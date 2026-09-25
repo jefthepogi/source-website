@@ -227,29 +227,3 @@
   letter-spacing: 0.05em;
   margin-bottom: 6px;
 }
-
-/* Input field base styling */
-.invite-input {
-  width: 100%;
-  padding: 10px 14px;
-  background-color: #191c1a;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  color: #f0f2f1;
-  font-size: 13px;
-  outline: none;
-  box-sizing: border-box;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  font-family: inherit;
-}
-
-/* Placeholder color */
-.invite-input::placeholder {
-  color: #5a6560;
-}
-
-/* Active focus ring */
-.invite-input:focus {
-  border-color: #22c55e;
-  box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.2);
-}

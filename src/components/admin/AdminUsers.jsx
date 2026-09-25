@@ -287,13 +287,13 @@ export default function AdminUsers() {
 
                 <div>
                   <label className="adm-label">Email</label>
-                  <input className="invite-input" type="email" placeholder="newadmin@lsu.edu.ph" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} />
+                  <input className="adm-input" type="email" placeholder="newadmin@lsu.edu.ph" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} />
                 </div>
 
                 <div>
                   <label className="adm-label">Password</label>
                   <PasswordField>
-                    <input className="invite-input" type="password" placeholder="Min. 8 characters" value={invitePassword} onChange={(e) => setInvitePassword(e.target.value)} />
+                    <input className="adm-password-input" type="password" placeholder="Min. 8 characters" value={invitePassword} onChange={(e) => setInvitePassword(e.target.value)} />
                   </PasswordField>
                   <p style={{ fontSize:11, color:'#5a6560', marginTop:5 }}>Share this password with the new admin securely. They can change it later.</p>
                 </div>  
