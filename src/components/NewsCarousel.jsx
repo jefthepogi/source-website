@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import Slider from 'react-slick';
+import SliderModule from 'react-slick';
 import { supabase } from '../lib/supabase';
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+
+// fixed slider module import for SSR (server-side rendering) compatibility
+const Slider = SliderModule.default || SliderModule;
 
 export default function NewsCarousel() {
   const [newsData, setNewsData] = useState([]);
