@@ -1,8 +1,11 @@
 import React, { useRef, useEffect, useState } from 'react';
-import Slider from 'react-slick';
+import SliderModule from 'react-slick';
 import { FaArrowRight } from 'react-icons/fa';
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+
+// fixed slider module import for SSR (server-side rendering) compatibility
+const Slider = SliderModule.default || SliderModule;
 
 const initiativesData = [
   {
