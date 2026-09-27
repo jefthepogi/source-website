@@ -29,7 +29,7 @@ const COLUMNS = [
   },
 ];
 
-export default function AdminNews() {
+export default function AdminNews({ startInAdd, onIntentConsumed } = {}) {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -55,6 +55,8 @@ export default function AdminNews() {
       onDelete={async (id) => { await supabase.from('news').delete().eq('id', id); fetchData(); }}
       defaultValues={{ published: true }}
       imageFolder="news"
+      startInAdd={startInAdd}
+      onIntentConsumed={onIntentConsumed}
     />
   );
 }

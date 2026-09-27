@@ -213,13 +213,20 @@ function SortableOfficerList({ rows, onReorder, onEdit, onDelete }) {
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────────
-export default function AdminOfficers() {
+export default function AdminOfficers({ startInAdd, onIntentConsumed } = {})  {
   const [rows,        setRows]        = useState([]);
   const [loading,     setLoading]     = useState(true);
   const [showAdd,     setShowAdd]     = useState(false);
   const [editRow,     setEditRow]     = useState(null);
   const [deleteRow,   setDeleteRow]   = useState(null);
   const [saving,      setSaving]      = useState(false);
+
+  useEffect(() => {
+    if (startInAdd) {
+      setShowAdd(true);
+      onIntentConsumed?.();
+    }
+  }, [startInAdd]);
 
   const fetchData = async () => {
     setLoading(true);

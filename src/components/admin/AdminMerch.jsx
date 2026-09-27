@@ -320,7 +320,7 @@ function EarningsTab({ orders, rows }) {
   );
 }
 
-export default function AdminMerch() {
+export default function AdminMerch({ initialTab, onIntentConsumed } = {}) {
   const [tab,               setTab]               = useState('items');
   const [rows,              setRows]              = useState([]);
   const [orders,            setOrders]            = useState([]);
@@ -340,6 +340,14 @@ export default function AdminMerch() {
   const [managingBatches,   setManagingBatches]   = useState(false);
   const [toast,             setToast]             = useState(null);
 
+  // Open the requested merch tab from the dashboard
+useEffect(() => {
+  if (initialTab) {
+    setTab(initialTab);
+    onIntentConsumed?.();
+  }
+}, [initialTab]);
+
   const showToast = useCallback((message, type = 'info') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
@@ -356,7 +364,7 @@ export default function AdminMerch() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [editOrderTarget, managingBatches, deleteOrderTarget, selectedOrder]);
+  }, [ editOrderTarget, managingBatches, deleteOrderTarget, selectedOrder]);
 
   const fetchItems = useCallback(async () => {
     setLoadingItems(true);

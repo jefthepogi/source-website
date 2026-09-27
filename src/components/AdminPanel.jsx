@@ -195,31 +195,49 @@ function BottomNav({ navItems, active, setActive, onLogout }) {
 }
 
 // ── Dashboard ─────────────────────────────────────────────────────────────────
-function Dashboard({ setActive, permissions, isSuperadmin }) {
+function Dashboard({ onQuickAction, permissions, isSuperadmin }) {
   const [counts, setCounts] = useState({});
   const [unread, setUnread] = useState(0);
+  const [unpaid, setUnpaid] = useState(0);
+  const [nextEvent, setNextEvent] = useState(null);
+  const [latestNews, setLatestNews] = useState(null);
+  
 
-  useEffect(() => {
+    useEffect(() => {
     const tables = ['news', 'events', 'officers', 'merch_items', 'redirect_links', 'contact_submissions'];
     tables.forEach(async (t) => {
       const { count } = await supabase.from(t).select('*', { count: 'exact', head: true });
       setCounts((p) => ({ ...p, [t]: count ?? 0 }));
     });
+
     supabase.from('contact_submissions').select('*', { count: 'exact', head: true }).eq('read', false)
       .then(({ count }) => setUnread(count ?? 0));
+
+    supabase.from('merch_preorders').select('*', { count: 'exact', head: true }).eq('is_paid', false)
+      .then(({ count }) => setUnpaid(count ?? 0));
+      
+    const today = new Date().toISOString().split('T')[0];
+    supabase.from('events').select('*').gte('event_date', today)
+      .order('event_date', { ascending: true }).limit(1).maybeSingle()
+      .then(({ data }) => setNextEvent(data));
+
+    supabase.from('news').select('*').order('date', { ascending: false })
+      .limit(1).maybeSingle()
+      .then(({ data }) => setLatestNews(data));
   }, []);
 
-  const ALL_STATS = [
+    const ALL_STATS = [
     { label: 'News',      key: 'news',                section: 'news',      icon: Newspaper,    accent: '#60a5fa' },
     { label: 'Events',    key: 'events',              section: 'events',    icon: CalendarDays, accent: '#a78bfa' },
     { label: 'Officers',  key: 'officers',            section: 'officers',  icon: Users,        accent: '#22c55e' },
-    { label: 'Merch',     key: 'merch_items',         section: 'merch',     icon: ShoppingBag,  accent: '#fbbf24' },
+    { label: 'Merch', key: 'merch_items', section: 'merch', icon: ShoppingBag, accent: '#fbbf24', badge: unpaid, intent: 'orders' },
     { label: 'Redirects', key: 'redirect_links',      section: 'redirects', icon: Link2,        accent: '#fb923c' },
-    { label: 'Messages',  key: 'contact_submissions', section: 'contacts',  icon: MessageSquare,accent: '#f87171', badge: true },
+    { label: 'Messages',  key: 'contact_submissions', section: 'contacts',  icon: MessageSquare,accent: '#f87171', badge: unread, intent: 'unread' },
   ];
 
   // Only show stat cards for sections the user has access to
   const stats = ALL_STATS.filter(s => isSuperadmin || permissions.includes(s.section));
+  const canSee = (section) => isSuperadmin || permissions.includes(section);
 
   return (
     <div className="fade-in">
@@ -234,27 +252,70 @@ function Dashboard({ setActive, permissions, isSuperadmin }) {
         </div>
       </div>
 
-      <div className="stat-card-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 14 }}>
-        {stats.map(({ label, key, section, icon: Icon, accent, badge }, i) => (
-          <button
-            key={label}
-            onClick={() => setActive(section)}
+      <div className="stat-card-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 14, marginBottom: 24 }}>
+        {stats.map(({ label, key, section, icon: Icon, accent, badge, intent }, i) => (
+          <button key={label}
+            onClick={() => onQuickAction(section, badge > 0 ? intent : null)}
             className="stat-card"
-            style={{ background: 'var(--bg-2)', border: '1px solid var(--border)', animationDelay: `${i * 45}ms` }}
-          >
+            style={{ background: 'var(--bg-2)', border: '1px solid var(--border)', animationDelay: `${i * 45}ms` }}>
             <div style={{ position: 'absolute', top: -12, right: -12, width: 64, height: 64, borderRadius: '50%', background: accent, opacity: 0.06 }} />
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
               <div style={{ width: 34, height: 34, borderRadius: 10, background: `${accent}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: accent }}>
                 <Icon size={15} />
               </div>
-              {badge && unread > 0 && (
-                <span style={{ background: '#ef4444', color: 'white', fontSize: 10, fontWeight: 700, borderRadius: '50%', width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{unread}</span>
+              {!!badge && (
+                <span style={{ background: '#ef4444', color: 'white', fontSize: 10, fontWeight: 700, borderRadius: '50%', width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{badge}</span>
               )}
             </div>
             <p style={{ fontFamily: 'var(--font-head)', fontWeight: 700, fontSize: '1.75rem', color: 'var(--text)', lineHeight: 1 }}>{counts[key] ?? '—'}</p>
             <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 4, fontWeight: 500 }}>{label}</p>
           </button>
         ))}
+      </div>
+
+      {/* Info panels — click the whole card, no duplicate "Manage" button */}
+      <div style={{ display: 'grid', gridTemplateColumns: canSee('events') && canSee('news') ? '1fr 1fr' : '1fr', gap: 14, marginBottom: 24 }}>
+        {canSee('events') && (
+          <div className="adm-surface" onClick={() => onQuickAction('events')}
+            style={{ padding: 20, cursor: 'pointer', transition: 'transform 0.15s' }}
+            onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+            onMouseLeave={(e) => e.currentTarget.style.transform = 'none'}>
+            <p className="adm-section-tag">Upcoming Event</p>
+            {nextEvent ? (
+              <>
+                <p style={{ fontFamily: 'var(--font-head)', fontWeight: 700, fontSize: '1.1rem', color: 'var(--text)', marginBottom: 4 }}>{nextEvent.title}</p>
+                <p style={{ fontSize: 12, color: 'var(--text-3)' }}>
+                  {new Date(nextEvent.event_date).toLocaleDateString('en-PH', { month: 'long', day: 'numeric', year: 'numeric' })}
+                </p>
+              </>
+            ) : (
+              <p style={{ fontSize: 13, color: 'var(--text-3)' }}>No upcoming events scheduled.</p>
+            )}
+          </div>
+        )}
+        {canSee('news') && (
+          <div className="adm-surface" onClick={() => onQuickAction('news')}
+            style={{ padding: 20, cursor: 'pointer', transition: 'transform 0.15s' }}
+            onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+            onMouseLeave={(e) => e.currentTarget.style.transform = 'none'}>
+            <p className="adm-section-tag">Latest News</p>
+            {latestNews ? (
+              <p style={{ fontFamily: 'var(--font-head)', fontWeight: 700, fontSize: '1.1rem', color: 'var(--text)' }}>{latestNews.title}</p>
+            ) : (
+              <p style={{ fontSize: 13, color: 'var(--text-3)' }}>No news posted yet.</p>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Quick Actions — only real create-shortcuts remain */}
+      <div>
+        <p className="adm-section-tag">Quick Actions</p>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          {canSee('news')     && <button className="adm-pill" onClick={() => onQuickAction('news', 'add')}><Newspaper size={13} /> Add News</button>}
+          {canSee('events')   && <button className="adm-pill" onClick={() => onQuickAction('events', 'add')}><CalendarDays size={13} /> Add Event</button>}
+          {canSee('officers') && <button className="adm-pill" onClick={() => onQuickAction('officers', 'add')}><Users size={13} /> Add Officer</button>}
+        </div>
       </div>
     </div>
   );
@@ -267,6 +328,10 @@ export default function AdminApp() {
   const [loadingRole, setLoadingRole] = useState(true);
   const [active,      setActive]      = useState('dashboard');
   const [collapsed,   setCollapsed]   = useState(false);
+  const [pendingIntent, setPendingIntent] = useState(null);
+
+  //added goTo function to allow child components to change the active section and set a pending intent
+  const goTo = (section, intent = null) => { setActive(section); setPendingIntent(intent); };
 
   // Auth listener
   useEffect(() => {
@@ -309,9 +374,35 @@ export default function AdminApp() {
   }
 
   if (!session) return <LoginScreen />;
+  // Guard: if user is logged in but not an admin, show a message
+  if (!adminRecord) {
+  return (
+    <div className="admin-root" style={{
+      minHeight: '100vh',
+      display: 'grid',
+      placeItems: 'center'
+    }}>
+      <div className="adm-surface" style={{ padding: 30 }}>
+        <h2>Admin access not granted</h2>
+
+        <p>
+          This account is not registered as an administrator.
+        </p>
+
+        <button
+          className="adm-btn-ghost"
+          onClick={() => supabase.auth.signOut()}
+        >
+          Sign Out
+        </button>
+      </div>
+    </div>
+  );
+}
 
   // ── Permissions ──
-  const isSuperadmin = !adminRecord || adminRecord?.role === 'superadmin';
+  //changed this to only allow users with the "superadmin" role to have superadmin privileges
+  const isSuperadmin = adminRecord?.role === 'superadmin';
   const permissions  = isSuperadmin ? ALL_NAV.map(n => n.id) : (adminRecord?.permissions || []);
 
   // Build visible nav based on permissions
@@ -325,14 +416,14 @@ export default function AdminApp() {
   const effectiveActive = navItems.find(n => n.id === active) ? active : 'dashboard';
 
   const SECTIONS = {
-    dashboard: <Dashboard setActive={setActive} permissions={permissions} isSuperadmin={isSuperadmin} />,
-    news:      <AdminNews />,
-    events:    <AdminEvents />,
-    officers:  <AdminOfficers />,
-    merch:     <AdminMerch />,
-    redirects: <AdminRedirects />,
-    contacts:  <AdminContacts />,
-    users:     <AdminUsers />,
+  dashboard: <Dashboard onQuickAction={goTo} permissions={permissions} isSuperadmin={isSuperadmin} />,
+  news:      <AdminNews     startInAdd={pendingIntent === 'add'} onIntentConsumed={() => setPendingIntent(null)} />,
+  events:    <AdminEvents   startInAdd={pendingIntent === 'add'} onIntentConsumed={() => setPendingIntent(null)} />,
+  officers:  <AdminOfficers startInAdd={pendingIntent === 'add'} onIntentConsumed={() => setPendingIntent(null)} />,
+  merch: <AdminMerch initialTab={pendingIntent === 'orders' ? 'orders' : undefined} onIntentConsumed={() => setPendingIntent(null)} />,
+  redirects: <AdminRedirects />,
+  contacts:  <AdminContacts initialFilter={pendingIntent === 'unread' ? 'unread' : undefined} onIntentConsumed={() => setPendingIntent(null)} />,
+  users:     <AdminUsers />,
   };
 
   return (
@@ -352,7 +443,7 @@ export default function AdminApp() {
         {/* Main content */}
         <main className="admin-main" style={{ flex: 1, overflowY: 'auto', padding: '36px 40px' }}>
           <div style={{ maxWidth: 1080 }}>
-            {SECTIONS[effectiveActive] || <Dashboard setActive={setActive} permissions={permissions} isSuperadmin={isSuperadmin} />}
+            {SECTIONS[effectiveActive] || <Dashboard onQuickAction={goTo} permissions={permissions} isSuperadmin={isSuperadmin} />}
           </div>
         </main>
 
