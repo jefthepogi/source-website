@@ -4,12 +4,19 @@ import { supabase } from '../../lib/supabase';
 import { Mail, MailOpen, Trash2, RefreshCw } from 'lucide-react';
 import { DeleteConfirm } from './CRUDTable';
 
-export default function AdminContacts() {
+export default function AdminContacts({ initialFilter, onIntentConsumed } = {}) {
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [filter, setFilter] = useState('all');
+
+  useEffect(() => {
+    if (initialFilter) {
+      setFilter(initialFilter);
+      onIntentConsumed?.();
+    }
+  }, [initialFilter]);
 
   const fetchData = async () => {
     setLoading(true);

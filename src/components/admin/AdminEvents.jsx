@@ -40,7 +40,7 @@ const COLUMNS = [
   { key: 'published', label: 'Visible', render: (v) => <span className={v ? 'adm-badge-yes' : 'adm-badge-no'}>{v ? 'Yes' : 'No'}</span> },
 ];
 
-export default function AdminEvents() {
+export default function AdminEvents({ startInAdd, onIntentConsumed } = {}) {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -75,6 +75,8 @@ export default function AdminEvents() {
       onDelete={async (id) => { await supabase.from('events').delete().eq('id', id); fetchData(); }}
       defaultValues={{ published: true, status: 'upcoming', category: 'General' }}
       imageFolder="events"
+      startInAdd={startInAdd}
+      onIntentConsumed={onIntentConsumed}
     />
   );
 }

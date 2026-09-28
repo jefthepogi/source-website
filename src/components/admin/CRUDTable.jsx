@@ -246,7 +246,7 @@ export function DeleteConfirm({ onConfirm, onCancel }) {
 }
 
 // ── CRUDTable ─────────────────────────────────────────────────────────────────
-export function CRUDTable({ title, description, columns, fields, rows, loading, onAdd, onEdit, onDelete, defaultValues, hideTitle, imageFolder }) {
+export function CRUDTable({ title, description, columns, fields, rows, loading, onAdd, onEdit, onDelete, defaultValues, hideTitle, imageFolder, startInAdd, onIntentConsumed }) {
   const [showAdd,   setShowAdd]   = useState(false);
   const [editRow,   setEditRow]   = useState(null);
   const [deleteRow, setDeleteRow] = useState(null);
@@ -258,6 +258,14 @@ export function CRUDTable({ title, description, columns, fields, rows, loading, 
     else         { await onAdd(data); setShowAdd(false); }
     setSaving(false);
   };
+
+  //added useeffect to handle the startInAdd prop, which allows the table to open in "Add New" mode when specified
+  useEffect(() => {
+    if (startInAdd) {
+      setShowAdd(true);
+      onIntentConsumed?.();
+    }
+  }, [startInAdd]);
 
   return (
     <div>
