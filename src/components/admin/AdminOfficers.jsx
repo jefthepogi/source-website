@@ -4,8 +4,6 @@ import { supabase } from '../../lib/supabase';
 import { Modal, DeleteConfirm } from './CRUDTable';
 import { ChevronUp, ChevronDown, GripVertical } from 'lucide-react';
 
-const IMAGE_KIT_ROOT_DIRECTORY = "lsu-source-web";
-
 const FIELDS = [
   { name: 'name',      label: 'Full Name',            type: 'text',   required: true },
   { name: 'position',  label: 'Position',             type: 'text',   required: true, placeholder: 'e.g. President' },
@@ -286,7 +284,7 @@ export default function AdminOfficers({ startInAdd, onIntentConsumed } = {})  {
           onSave={handleSave}
           onClose={() => { setShowAdd(false); setEditRow(null); }}
           saving={saving}
-          imageFolder={`${IMAGE_KIT_ROOT_DIRECTORY}/officers`}
+          imageFolder={"officers"}
         />
       )}
 

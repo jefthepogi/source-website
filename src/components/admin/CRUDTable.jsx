@@ -3,6 +3,8 @@ import { Pencil, Trash2, Plus, X, Check, AlertTriangle, Upload, Link, Image } fr
 import { supabase } from '../../lib/supabase';
 import '../../admin.css';
 
+const IMAGE_KIT_ROOT_DIRECTORY = "lsu-source-web";
+
 // DS is kept as a no-op export so existing imports don't break
 export const DS = '';
 
@@ -40,6 +42,7 @@ export function ImageUploadField({ value, onChange, folder = '' }) {
       formData.append('expire', expire);
       formData.append('token', token);
       
+      // Fixes folder filepath format
       if (folder) {
         const cleanFolder = folder.startsWith('/') ? folder : `/${folder}`;
         formData.append('folder', cleanFolder);
@@ -55,11 +58,12 @@ export function ImageUploadField({ value, onChange, folder = '' }) {
       if (!response.ok) {
         throw new Error(uploadResult.message || 'ImageKit upload failed.');
       }
-
+      
       // 4. Update preview state and trigger CRUD form onChange callback
       const imageUrl = uploadResult.url;
+      const fileId = uploadResult.fileId; // NEW: Capture the fileId
       setPreview(imageUrl);
-      onChange('image_url', imageUrl);
+      onChange(imageUrl, fileId); // CHANGED: Pass both values
 
     } catch (err) {
       console.error('ImageKit Upload Error:', err);
@@ -139,7 +143,7 @@ export function ImageUploadField({ value, onChange, folder = '' }) {
           value={value || ''}
           onChange={(e) => { 
             setPreview(e.target.value); 
-            onChange('image_url', e.target.value); 
+            onChange(e.target.value, null); 
           }} 
         />
       )}
@@ -152,7 +156,7 @@ export function ImageUploadField({ value, onChange, folder = '' }) {
 export function FieldInput({ field, value, onChange, imageFolder }) {
   // for uploading images
   if (field.type === 'image') {
-    return <ImageUploadField value={value} onChange={onChange} folder={imageFolder || field.folder || ''} bucket={field.bucket || 'images'} />;
+    return <ImageUploadField value={value} onChange={onChange} folder={imageFolder || ''} />;
   }
   // For general text
   if (field.type === 'textarea') {
@@ -203,7 +207,7 @@ export function Modal({ title, fields, data, onSave, onClose, saving, imageFolde
               <label className="adm-label">
                 {field.label}{field.required && <span style={{ color: '#f87171', marginLeft: 3 }}>*</span>}
               </label>
-              <FieldInput field={field} value={form[field.name]} onChange={handleChange} imageFolder={imageFolder} />
+              <FieldInput field={field} value={form[field.name]} onChange={handleChange} imageFolder={`${IMAGE_KIT_ROOT_DIRECTORY}/${imageFolder}`} />
             </div>
           ))}
         </div>
