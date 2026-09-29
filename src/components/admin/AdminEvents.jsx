@@ -5,6 +5,7 @@ import { CRUDTable } from './CRUDTable';
 
 const FIELDS = [
   { name: 'title', label: 'Title', type: 'text', required: true },
+  { name: 'slug',label: 'Slug', type: 'text', required: true, placeholder: 'e.g. cpp-bootcamp'},
   { name: 'description', label: 'Description', type: 'textarea' },
   { name: 'image_url', label: 'Cover Image', type: 'image', folder: 'events', bucket: 'images' },
   { name: 'event_date', label: 'Date', type: 'date' },
@@ -62,6 +63,7 @@ export default function AdminEvents({ startInAdd, onIntentConsumed } = {}) {
 
   useEffect(() => { fetchData(); }, []);
 
+  // changed the onAdd and onEdit. Format the slug before inserting or updating the event
   return (
     <CRUDTable
       title="Events"
@@ -70,8 +72,8 @@ export default function AdminEvents({ startInAdd, onIntentConsumed } = {}) {
       fields={FIELDS}
       rows={rows}
       loading={loading}
-      onAdd={async (data) => { await supabase.from('events').insert([{ ...data, published: data.published ?? true, status: data.status || 'upcoming' }]); fetchData(); }}
-      onEdit={async (id, data) => { await supabase.from('events').update(data).eq('id', id); fetchData(); }}
+      onAdd={async (data) => { await supabase.from('events').insert([{ ...data, slug: data.slug?.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') }]); fetchData(); }}
+      onEdit={async (id, data) => { await supabase.from('events').update({ ...data, slug: data.slug?.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') }).eq('id', id); fetchData(); }}
       onDelete={async (id) => { await supabase.from('events').delete().eq('id', id); fetchData(); }}
       defaultValues={{ published: true, status: 'upcoming', category: 'General' }}
       imageFolder="events"
