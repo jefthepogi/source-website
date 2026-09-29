@@ -345,22 +345,29 @@ export default function AdminApp() {
     return () => subscription.unsubscribe();
   }, []);
 
-  const userId = session?.user?.id;
-  const userEmail = session?.user?.email;
-
+const userId = session?.user?.id;
+ 
   useEffect(() => {
-    if (!userId || !userEmail) { setAdminRecord(null); setLoadingRole(false); return; }
-    setLoadingRole(true);
-    supabase
-      .from('admin_users')
-      .select('*')
-      .eq('email', userEmail)
-      .maybeSingle()
-      .then(({ data }) => {
-        setAdminRecord(data);
-        setLoadingRole(false);
-      });
-  }, [userId, userEmail]); // stable primitives — won't re-run on token refresh
+  if (!userId) {
+    setAdminRecord(null);
+    setLoadingRole(false);
+    return;
+  }
+
+  setLoadingRole(true);
+
+  supabase
+    .from('admin_users')
+    .select('*')
+    .eq('user_id', userId)
+    .maybeSingle()
+    .then(({ data, error }) => {
+      if (error) console.error('Failed to load admin record:', error);
+
+      setAdminRecord(data);
+      setLoadingRole(false);
+    });
+}, [userId]);
 
   const handleLogout = () => supabase.auth.signOut();
 
