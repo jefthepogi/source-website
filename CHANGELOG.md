@@ -1,5 +1,62 @@
-UPDATE OR CHANGES IS PUT IN HERE!!
-(wency v1 upd)
+UPDATE OR CHANGES IS PUT IN HERE!!!
+(WENCYV2 UPD!!)
+### `src/components/MentorsDay.jsx`
+- Replaced the hardcoded Supabase client with the website's shared Supabase client so the Gratitude Tree uses the main database.
+
+### `src/components/AdminPanel.jsx`
+- Updated the upcoming event query to compare the full current timestamp with the `event_date` timestamp.
+- Dashboard queries now use the newly created `news`, `contact_submissions`, `merch_items`, and `merch_preorders` tables.
+
+
+### `src/components/admin/AdminEvents.jsx`
+- Added the required `slug` field to the event form.
+- Added slug formatting before creating or updating an event.
+- Marked required event fields to match the Supabase schema.
+- Aligned event fields with the updated Supabase columns including `image_url`, `event_time`, `status`, `registration_link`, and `published`.
+
+
+### Supabase Database Changes
+
+#### New Tables Added
+- Added `news` table for managing and displaying news posts.
+  - Includes `title`, `description`, `image_url`, `tag`, `date`, `published`, and `created_at`.
+
+- Added `contact_submissions` table for messages submitted through the Contact page.
+  - Includes `name`, `email`, `subject`, `message`, `read`, and `created_at`.
+
+- Added `redirect_links` table for managing dynamic redirect links.
+  - Includes `slug`, `destination_url`, `label`, `active`, and `created_at`.
+
+- Added `gratitude_tree` table for storing Mentors Day gratitude messages.
+  - Includes `message` and `created_at`.
+
+- Added `merch_preorders` table for storing merchandise preorder information.
+  - Includes customer information, selected merchandise, size, payment information, customization fields, payment status, claim status, batch, and creation date.
+  - Added a foreign key from `merch_preorders.item_id` to `merch_items.id`.
+
+#### Merchandise Table Changes
+- Renamed the existing `merchandise` table to `merch_items` to match the frontend code.
+- Renamed `type` to `category`.
+- Renamed `size_available` to `sizes`.
+- Kept the existing `stock_quantity` field for inventory purposes.
+- Added `image_url` for merchandise images hosted through ImageKit.
+- Added `sort_order` for controlling merchandise display order.
+- Added `available` for controlling whether a merchandise item is currently available.
+- Added `show_back_name` and `back_name_required` for optional name customization.
+- Added `show_back_number` and `back_number_required` for optional number customization.
+
+#### Events Table Changes
+- Renamed `is_active` to `published` to match the frontend event visibility field.
+- Renamed `banner_url` to `image_url` to match the event image field used by the frontend.
+- Added `event_time` for displaying the scheduled event time.
+- Added `status` with supported values: `upcoming`, `ongoing`, and `past`.
+- Added `registration_link` for external event registration URLs.
+- Kept the existing `slug` field as required and unique.
+- Added a status check constraint to restrict event status values.
+- Kept the existing `max_participants` and `registration_fee` fields for future event registration features.
+
+
+(WENCYV1 UPD!!)
 The full list of changes organized by file:
 ### `src/components/AdminPanel.jsx`
 

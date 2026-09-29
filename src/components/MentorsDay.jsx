@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Sparkles, ZoomIn, ZoomOut, Maximize2, Clock } from 'lucide-react';
 
-const supabase = createClient('https://ehjruxjzmxarulzfsotn.supabase.co', 'sb_publishable_bA_wjwQ1e2TdYLez_TzOpA_8dGhYER1');
+
 
 const LasallianTree = () => {
   const [messages, setMessages] = useState([]);
