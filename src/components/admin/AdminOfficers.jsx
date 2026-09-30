@@ -3,6 +3,7 @@ import '../../admin.css';
 import { supabase } from '../../lib/supabase';
 import { Modal, DeleteConfirm } from './CRUDTable';
 import { ChevronUp, ChevronDown, GripVertical } from 'lucide-react';
+import { deleteImageFromImageKit } from '../../utils/imagekit';
 
 const FIELDS = [
   { name: 'name',      label: 'Full Name',            type: 'text',   required: true },
@@ -238,24 +239,69 @@ export default function AdminOfficers({ startInAdd, onIntentConsumed } = {})  {
 
   useEffect(() => { fetchData(); }, []);
 
-  const handleSave = async (formData) => {
-    setSaving(true);
+const handleSave = async (formData) => {
+  setSaving(true);
+
+  try {
     if (editRow) {
-      await supabase.from('officers').update(formData).eq('id', editRow.id);
+      const oldFileId = editRow.image_file_id;
+
+      const { error } = await supabase
+        .from('officers')
+        .update(formData)
+        .eq('id', editRow.id);
+
+      if (error) throw error;
+
+      if (oldFileId && oldFileId !== formData.image_file_id) {
+        await deleteImageFromImageKit(oldFileId);
+      }
     } else {
       const nextOrder = rows.length;
-      await supabase.from('officers').insert([{ ...formData, published: formData.published ?? true, sort_order: nextOrder }]);
+
+      const { error } = await supabase
+        .from('officers')
+        .insert([{
+          ...formData,
+          published: formData.published ?? true,
+          sort_order: nextOrder
+        }]);
+
+      if (error) throw error;
     }
-    setSaving(false);
+
     setEditRow(null);
     setShowAdd(false);
     fetchData();
-  };
+  } catch (error) {
+    console.error('Failed to save officer:', error);
+    alert(error.message || 'Failed to save officer.');
+  } finally {
+    setSaving(false);
+  }
+};
 
   const handleDelete = async () => {
-    await supabase.from('officers').delete().eq('id', deleteRow.id);
-    setDeleteRow(null);
-    fetchData();
+    try {
+      const oldFileId = deleteRow.image_file_id;
+
+      const { error } = await supabase
+        .from('officers')
+        .delete()
+        .eq('id', deleteRow.id);
+
+      if (error) throw error;
+
+      if (oldFileId) {
+        await deleteImageFromImageKit(oldFileId);
+      }
+
+      setDeleteRow(null);
+      fetchData();
+    } catch (error) {
+      console.error('Failed to delete officer:', error);
+      alert(error.message || 'Failed to delete officer.');
+    }
   };
 
   if (loading) {

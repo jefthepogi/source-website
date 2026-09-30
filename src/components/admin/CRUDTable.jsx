@@ -2,13 +2,14 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Pencil, Trash2, Plus, X, Check, AlertTriangle, Upload, Link, Image } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import '../../admin.css';
+import { deleteImageFromImageKit } from '../../utils/imagekit';
 
 const IMAGE_KIT_ROOT_DIRECTORY = "lsu-source-web";
 
 // DS is kept as a no-op export so existing imports don't break
 export const DS = '';
 
-export function ImageUploadField({ value, onChange, folder = '' }) {
+export function ImageUploadField({ value, onChange, folder = '', fieldName = 'image_url', fileIdField = 'image_file_id' }) {
   const [mode,      setMode]      = useState('upload');
   const [uploading, setUploading] = useState(false);
   const [dragOver,  setDragOver]  = useState(false);
@@ -63,8 +64,9 @@ export function ImageUploadField({ value, onChange, folder = '' }) {
       const imageUrl = uploadResult.url;
       const fileId = uploadResult.fileId; // NEW: Capture the fileId
       setPreview(imageUrl);
-      onChange(imageUrl, fileId); // CHANGED: Pass both values
-
+      onChange(fieldName, imageUrl);
+      onChange(fileIdField, fileId);
+      
     } catch (err) {
       console.error('ImageKit Upload Error:', err);
       alert('Upload failed: ' + err.message);
@@ -143,7 +145,8 @@ export function ImageUploadField({ value, onChange, folder = '' }) {
           value={value || ''}
           onChange={(e) => { 
             setPreview(e.target.value); 
-            onChange(e.target.value, null); 
+            onChange(fieldName, e.target.value);
+            onChange(fileIdField, null); 
           }} 
         />
       )}
@@ -156,7 +159,7 @@ export function ImageUploadField({ value, onChange, folder = '' }) {
 export function FieldInput({ field, value, onChange, imageFolder }) {
   // for uploading images
   if (field.type === 'image') {
-    return <ImageUploadField value={value} onChange={(url, fileId) => {onChange(field.name, url); if (fileId) { onChange('image_file_id', fileId); }}} folder={imageFolder || ''} />;
+    return <ImageUploadField value={value} onChange={onChange} folder={imageFolder || ''} />;
   }
   // For general text
   if (field.type === 'textarea') {
@@ -258,9 +261,28 @@ export function CRUDTable({ title, description, columns, fields, rows, loading, 
 
   const handleSave = async (data) => {
     setSaving(true);
-    if (editRow) { await onEdit(editRow.id, data, editRow); setEditRow(null); }
-    else         { await onAdd(data); setShowAdd(false); }
-    setSaving(false);
+
+    try {
+      if (editRow) {
+        const oldFileId = editRow.image_file_id;
+
+        await onEdit(editRow.id, data);
+
+        if (oldFileId && oldFileId !== data.image_file_id) {
+          await deleteImageFromImageKit(oldFileId);
+        }
+
+        setEditRow(null);
+      } else {
+        await onAdd(data);
+        setShowAdd(false);
+      }
+    } catch (error) {
+      console.error('Failed to save:', error);
+      alert(error.message || 'Failed to save.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   //added useeffect to handle the startInAdd prop, which allows the table to open in "Add New" mode when specified
@@ -351,7 +373,7 @@ export function CRUDTable({ title, description, columns, fields, rows, loading, 
           imageFolder={imageFolder}
         />
       )}
-      {deleteRow && <DeleteConfirm onConfirm={async () => { await onDelete(deleteRow.id, deleteRow); setDeleteRow(null); }} onCancel={() => setDeleteRow(null)} />}
+      {deleteRow && ( <DeleteConfirm onConfirm={async () => { try { const oldFileId = deleteRow.image_file_id; await onDelete(deleteRow.id); if (oldFileId) { await deleteImageFromImageKit(oldFileId); } setDeleteRow(null); } catch (error) { console.error('Failed to delete:', error); alert(error.message || 'Failed to delete.'); } }} onCancel={() => setDeleteRow(null)} /> )}
     </div>
   );
 }
