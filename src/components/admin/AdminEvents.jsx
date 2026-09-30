@@ -63,6 +63,44 @@ export default function AdminEvents({ startInAdd, onIntentConsumed } = {}) {
 
   useEffect(() => { fetchData(); }, []);
 
+  const fetchSupabaseEdge = async (old_id) => {
+    const { error } = await supabase.functions.invoke('delete-image', {
+      body: { fileId: old_id }
+    });
+  
+    if (error) {
+      console.error("Failed to delete old image:", error);
+    } else {
+      console.log("Old image successfully deleted from CDN");
+    }
+  }
+
+  // created handlers for both edit and delete to manage the proper deletion of imagekit files
+  const handleEdit = async (id, newData, oldData) => {
+    // 1. If the image_file_id changed, delete the old image from ImageKit
+    if (newData.image_file_id && oldData.image_file_id && newData.image_file_id !== oldData.image_file_id) {
+      fetchSupabaseEdge(oldData.image_file_id);
+    }
+  
+    // 2. Update the record in Supabase
+    await supabase.from('events').update({ ...newData, slug: newData.slug?.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') }).eq('id', id);
+    // ... refresh table
+    fetchData();
+  };
+  
+  const handleDelete = async (id, oldData) => {
+    // 1. Delete the image from ImageKit before deleting the database row
+    if (oldData.image_file_id) {
+      fetchSupabaseEdge(oldData.image_file_id);
+    }
+  
+    // 2. Delete the record from Supabase
+    await supabase.from('events').delete().eq('id', id);
+    // ... refresh table
+    fetchData(); 
+  };
+
+
   // changed the onAdd and onEdit. Format the slug before inserting or updating the event
   return (
     <CRUDTable
@@ -73,10 +111,10 @@ export default function AdminEvents({ startInAdd, onIntentConsumed } = {}) {
       rows={rows}
       loading={loading}
       onAdd={async (data) => { await supabase.from('events').insert([{ ...data, slug: data.slug?.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') }]); fetchData(); }}
-      onEdit={async (id, data) => { await supabase.from('events').update({ ...data, slug: data.slug?.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') }).eq('id', id); fetchData(); }}
-      onDelete={async (id) => { await supabase.from('events').delete().eq('id', id); fetchData(); }}
+      onEdit={handleEdit}
+      onDelete={handleDelete}
       defaultValues={{ published: true, status: 'upcoming', category: 'General' }}
-      imageFolder="events"
+      imageFolder={"events"}
       startInAdd={startInAdd}
       onIntentConsumed={onIntentConsumed}
     />

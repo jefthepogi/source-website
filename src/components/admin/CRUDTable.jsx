@@ -156,7 +156,7 @@ export function ImageUploadField({ value, onChange, folder = '' }) {
 export function FieldInput({ field, value, onChange, imageFolder }) {
   // for uploading images
   if (field.type === 'image') {
-    return <ImageUploadField value={value} onChange={onChange} folder={imageFolder || ''} />;
+    return <ImageUploadField value={value} onChange={(url, fileId) => {onChange(field.name, url); if (fileId) { onChange('image_file_id', fileId); }}} folder={imageFolder || ''} />;
   }
   // For general text
   if (field.type === 'textarea') {
@@ -258,7 +258,7 @@ export function CRUDTable({ title, description, columns, fields, rows, loading, 
 
   const handleSave = async (data) => {
     setSaving(true);
-    if (editRow) { await onEdit(editRow.id, data); setEditRow(null); }
+    if (editRow) { await onEdit(editRow.id, data, editRow); setEditRow(null); }
     else         { await onAdd(data); setShowAdd(false); }
     setSaving(false);
   };
@@ -351,7 +351,7 @@ export function CRUDTable({ title, description, columns, fields, rows, loading, 
           imageFolder={imageFolder}
         />
       )}
-      {deleteRow && <DeleteConfirm onConfirm={async () => { await onDelete(deleteRow.id); setDeleteRow(null); }} onCancel={() => setDeleteRow(null)} />}
+      {deleteRow && <DeleteConfirm onConfirm={async () => { await onDelete(deleteRow.id, deleteRow); setDeleteRow(null); }} onCancel={() => setDeleteRow(null)} />}
     </div>
   );
 }
