@@ -216,7 +216,7 @@ function Dashboard({ onQuickAction, permissions, isSuperadmin }) {
     supabase.from('merch_preorders').select('*', { count: 'exact', head: true }).eq('is_paid', false)
       .then(({ count }) => setUnpaid(count ?? 0));
       
-    const now = new Date().toISOString().split('T')[0];
+    const now = new Date().toISOString();
     supabase.from('events').select('*').gte('event_date', now)
       .order('event_date', { ascending: true }).limit(1).maybeSingle()
       .then(({ data }) => setNextEvent(data));
