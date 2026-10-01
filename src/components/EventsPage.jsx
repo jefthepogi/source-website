@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { Calendar, MapPin, Clock, ExternalLink } from 'lucide-react';
+import { Calendar, MapPin, Clock, ExternalLink, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import HeaderBgImage from '../assets/events.jpg';
 
 const STATUS = {
   upcoming: { label: 'Upcoming', dot: '#60a5fa', bg: 'rgba(96,165,250,0.12)', text: '#93c5fd' },
-  ongoing:  { label: 'Ongoing',  dot: '#22c55e', bg: 'rgba(34,197,94,0.12)',  text: '#86efac' },
-  past:     { label: 'Past',     dot: '#5a6560', bg: 'rgba(90,101,96,0.12)',  text: '#9aa39d' },
+  ongoing: { label: 'Ongoing', dot: '#22c55e', bg: 'rgba(34,197,94,0.12)', text: '#86efac' },
+  past: { label: 'Past', dot: '#5a6560', bg: 'rgba(90,101,96,0.12)', text: '#9aa39d' },
 };
 
 const CATEGORIES = ['All', 'Workshop', 'Webinar', 'Social', 'Competition', 'General'];
@@ -17,6 +17,7 @@ export default function EventsPage() {
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState('All');
   const [activeStatus, setActiveStatus] = useState('all');
+  const [selectedEvent, setSelectedEvent] = useState(null);
 
   useEffect(() => {
     supabase.from('events').select('*').eq('published', true)
@@ -114,21 +115,22 @@ export default function EventsPage() {
             </div>
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%,300px), 1fr))', gap: 20 }}>
-              {filtered.map((ev, i) => <EventCard key={ev.id} event={ev} delay={i * 35} />)}
+              {filtered.map((ev, i) => (<EventCard key={ev.id} event={ev} delay={i * 35} onOpen={() => setSelectedEvent(ev)} />))}
             </div>
           )}
         </div>
+        {selectedEvent && (<EventDetailsModal event={selectedEvent} onClose={() => setSelectedEvent(null)} />)}
       </div>
     </>
   );
 }
 
-function EventCard({ event, delay }) {
+function EventCard({ event, delay, onOpen }) {
   const s = STATUS[event.status] || STATUS.past;
   const date = event.event_date ? new Date(event.event_date).toLocaleDateString('en-PH', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' }) : null;
 
   return (
-    <div className={`event-card fade-in ${event.status === 'past' ? '' : ''}`} style={{ animationDelay: `${delay}ms`, opacity: event.status === 'past' ? 0.6 : 1 }}>
+    <div className={`event-card fade-in ${event.status === 'past' ? '' : ''}`} style={{ animationDelay: `${delay}ms`, opacity: event.status === 'past' ? 0.6 : 1, cursor: 'pointer' }} onClick={onOpen} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { onOpen(); } }} >
       <div style={{ height: '180px', overflow: 'hidden', background: '#191c1a', position: 'relative' }}>
         <img src={event.image_url || 'https://placehold.co/600x400/191c1a/22c55e?text=EVENT'} alt={event.title}
           className="card-img" style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />
@@ -163,7 +165,7 @@ function EventCard({ event, delay }) {
         )}
 
         {event.registration_link && event.status !== 'past' && (
-          <a href={event.registration_link} target="_blank" rel="noopener noreferrer"
+          <a href={event.registration_link} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}
             style={{ marginTop: 16, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: '#22c55e', color: '#000', fontSize: 12, fontWeight: 600, padding: '9px 18px', borderRadius: 8, textDecoration: 'none', transition: 'background 0.2s', fontFamily: "'Outfit',sans-serif" }}
             onMouseEnter={(e) => e.currentTarget.style.background = '#28d468'}
             onMouseLeave={(e) => e.currentTarget.style.background = '#22c55e'}
@@ -171,6 +173,373 @@ function EventCard({ event, delay }) {
             Register Now <ExternalLink size={11} />
           </a>
         )}
+      </div>
+    </div>
+  );
+}
+
+function EventDetailsModal({ event, onClose }) {
+  const [gallery, setGallery] = useState([]);
+  const [activeImage, setActiveImage] = useState(0);
+
+  const s = STATUS[event.status] || STATUS.past;
+
+  const date = event.event_date
+    ? new Date(event.event_date).toLocaleDateString('en-PH', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })
+    : null;
+
+  // Close modal when Escape is pressed
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [onClose]);
+
+  // Prevent the background page from scrolling while modal is open
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, []);
+
+  // Fetch gallery images for the event
+  useEffect(() => {
+    const fetchGallery = async () => {
+      const { data, error } = await supabase
+        .from('event_images')
+        .select('id, image_url, sort_order')
+        .eq('event_id', event.id)
+        .order('sort_order', {
+          ascending: true
+        });
+
+      if (error) {
+        console.error(
+          'Failed to load event gallery:',
+          error
+        );
+
+        return;
+      }
+
+      setGallery(data || []);
+    };
+
+    setActiveImage(0);
+
+    fetchGallery();
+  }, [event.id]);
+
+  const images = [event.image_url, ...gallery.map((image) => image.image_url)].filter(Boolean);
+  const uniqueImages = [...new Set(images)];
+  const previousImage = () => { setActiveImage((current) => current === 0 ? uniqueImages.length - 1 : current - 1); };
+  const nextImage = () => { setActiveImage((current) => current === uniqueImages.length - 1 ? 0 : current + 1); };
+
+  return (
+    <div
+      onClick={onClose}
+      style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,0.78)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{ width: '100%', maxWidth: 780, maxHeight: '90vh', overflowY: 'auto', background: '#111412', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, position: 'relative', boxShadow: '0 24px 80px rgba(0,0,0,0.5)' }}
+      >
+        {/* Close button */}
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close event details"
+          style={{ position: 'absolute', top: 14, right: 14, zIndex: 5, width: 38, height: 38, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(13,15,14,0.82)', color: '#f0f2f1', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', backdropFilter: 'blur(6px)' }}
+        >
+          <X size={18} />
+        </button>
+
+        {/* Event image slider */}
+        <div
+          style={{
+            width: '100%',
+            height: 'clamp(230px, 40vw, 420px)',
+            overflow: 'hidden',
+            background: '#090a09',
+            position: 'relative'
+          }}
+        >
+          {/* Sliding images */}
+          <div
+            style={{
+              display: 'flex',
+              width: '100%',
+              height: '100%',
+              transform: `translateX(-${activeImage * 100}%)`,
+              transition: 'transform 0.45s cubic-bezier(0.4, 0, 0.2, 1)'
+            }}
+          >
+            {uniqueImages.length > 0 ? (
+              uniqueImages.map((image, index) => (
+                <div
+                  key={image}
+                  style={{
+                    minWidth: '100%',
+                    width: '100%',
+                    height: '100%',
+                    flexShrink: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  <img
+                    src={image}
+                    alt={`${event.title} ${index + 1}`}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'contain'
+                    }}
+                  />
+                </div>
+              ))
+            ) : (
+              <div
+                style={{
+                  minWidth: '100%',
+                  width: '100%',
+                  height: '100%',
+                  flexShrink: 0
+                }}
+              >
+                <img
+                  src="https://placehold.co/900x500/191c1a/22c55e?text=EVENT"
+                  alt={event.title}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'contain'
+                  }}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Slider controls */}
+          {uniqueImages.length > 1 && (
+            <>
+              {/* Previous */}
+              <button
+                type="button"
+                onClick={previousImage}
+                aria-label="Previous image"
+                style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', zIndex: 2, width: 40, height: 40, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(0,0,0,0.62)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+              >
+                <ChevronLeft size={21} />
+              </button>
+
+              {/* Next */}
+              <button
+                type="button"
+                onClick={nextImage}
+                aria-label="Next image"
+                style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', zIndex: 2, width: 40, height: 40, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(0,0,0,0.62)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+              >
+                <ChevronRight size={21} />
+              </button>
+
+              {/* Image counter */}
+              <div
+                style={{ position: 'absolute', top: 14, left: 14, zIndex: 2, background: 'rgba(0,0,0,0.62)', color: '#fff', padding: '5px 10px', borderRadius: 100, fontSize: 11 }}
+              >
+                {activeImage + 1} / {uniqueImages.length}
+              </div>
+
+              {/* Dots */}
+              <div
+                style={{ position: 'absolute', bottom: 14, left: '50%', transform: 'translateX(-50%)', zIndex: 2, display: 'flex', alignItems: 'center', gap: 6, padding: '6px 9px', borderRadius: 100, background: 'rgba(0,0,0,0.55)' }}
+              >
+                {uniqueImages.map((_, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => setActiveImage(index)}
+                    aria-label={`View image ${index + 1}`}
+                    style={{ width: index === activeImage ? 18 : 7, height: 7, padding: 0, border: 'none', borderRadius: 100, background: index === activeImage ? '#22c55e' : 'rgba(255,255,255,0.55)', cursor: 'pointer', transition: 'all 0.25s ease' }}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Details */}
+        <div style={{ padding: '28px' }}>
+          {/* Status and category */}
+          <div
+            style={{
+              display: 'flex',
+              gap: 8,
+              flexWrap: 'wrap',
+              marginBottom: 14
+            }}
+          >
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                fontSize: 11,
+                fontWeight: 600,
+                padding: '4px 10px',
+                borderRadius: 100,
+                background: s.bg,
+                color: s.text
+              }}
+            >
+              <span
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: '50%',
+                  background: s.dot
+                }}
+              />
+
+              {s.label}
+            </span>
+
+            {event.category && (
+              <span
+                style={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  padding: '4px 10px',
+                  borderRadius: 100,
+                  background: 'rgba(255,255,255,0.06)',
+                  color: '#9aa39d'
+                }}
+              >
+                {event.category}
+              </span>
+            )}
+          </div>
+
+          {/* Title */}
+          <h2
+            style={{
+              fontFamily: "'Syne', sans-serif",
+              fontWeight: 800,
+              color: '#f0f2f1',
+              fontSize: 'clamp(1.5rem, 4vw, 2.3rem)',
+              lineHeight: 1.2,
+              marginBottom: 20
+            }}
+          >
+            {event.title}
+          </h2>
+
+          {/* Date, time and location */}
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 10,
+              marginBottom: 28,
+              padding: '16px 18px',
+              borderRadius: 10,
+              background: 'rgba(255,255,255,0.025)',
+              border: '1px solid rgba(255,255,255,0.05)'
+            }}
+          >
+            {date && (
+              <MetaRow
+                icon={<Calendar size={15} />}
+                text={date}
+              />
+            )}
+
+            {event.event_time && (
+              <MetaRow
+                icon={<Clock size={15} />}
+                text={event.event_time}
+              />
+            )}
+
+            {event.location && (
+              <MetaRow
+                icon={<MapPin size={15} />}
+                text={event.location}
+              />
+            )}
+          </div>
+
+          {/* Full description */}
+          {event.description && (
+            <div style={{ marginBottom: 30 }}>
+              <p
+                style={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  letterSpacing: '0.15em',
+                  textTransform: 'uppercase',
+                  color: '#22c55e',
+                  marginBottom: 10
+                }}
+              >
+                About the Event
+              </p>
+
+              <p
+                style={{
+                  color: '#a7b0aa',
+                  fontSize: 14,
+                  lineHeight: 1.8,
+                  whiteSpace: 'pre-line'
+                }}
+              >
+                {event.description}
+              </p>
+            </div>
+          )}
+
+          {/* Register */}
+          {event.registration_link && event.status !== 'past' && (
+            <a
+              href={event.registration_link}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                background: '#22c55e',
+                color: '#000',
+                fontSize: 13,
+                fontWeight: 600,
+                padding: '11px 20px',
+                borderRadius: 8,
+                textDecoration: 'none',
+                fontFamily: "'Outfit', sans-serif"
+              }}
+            >
+              Register Now
+              <ExternalLink size={13} />
+            </a>
+          )}
+        </div>
       </div>
     </div>
   );
