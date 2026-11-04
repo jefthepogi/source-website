@@ -75,44 +75,6 @@ Cloudflare will host the built static site and execute scripts located in the `/
 
 For local development to function correctly, your Supabase instance must contain the necessary table definitions and Row Level Security (RLS) policies.
 
-Execute the following SQL commands in your Supabase SQL Editor to initialize the required schema:
-
-```sql
--- Officers Table
-CREATE TABLE public.officers (
-  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
-  name text NOT NULL,
-  position text NOT NULL,
-  image_url text,
-  sort_order integer DEFAULT 0,
-  category text,
-  academic_year text,
-  published boolean DEFAULT true,
-  created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
-);
-
-ALTER TABLE public.officers ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Officers are viewable by everyone" 
-ON public.officers FOR SELECT USING (true);
-
--- Admin Users Table
-CREATE TABLE public.admin_users (
-  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE,
-  email text NOT NULL,
-  role text NOT NULL DEFAULT 'editor',
-  permissions text[] DEFAULT '{}',
-  created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
-);
-
-ALTER TABLE public.admin_users ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Admins full access" 
-ON public.admin_users FOR ALL TO authenticated USING (true) WITH CHECK (true);
-
-```
-
 ## Deployment
 
 This project is configured for automated deployments via Cloudflare Pages.
